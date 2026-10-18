@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "karita に送る",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "現在のタブ、または図書館タブを開いた元のカーリル書籍 URL を karita へ送る。図書館サイトでは貸出し・マイページ登録の用途も選べる。Amazon のページと karita の連携確認ページは押したら送る。",
   "permissions": ["activeTab"],
   "optional_host_permissions": ["https://calil.jp/*"],
