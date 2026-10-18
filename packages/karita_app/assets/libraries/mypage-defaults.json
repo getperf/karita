@@ -1,7 +1,7 @@
 {
   "version": 1,
   "checked_on": "2026-08-15",
-  "source": "karita-ui-probe/docs/library-site-url.md §6（実サイトから採取し、GET 直リンクでログイン画面へ着地することを確認した）",
+  "source": "実サイトから採取し、GET 直リンクでログイン画面へ着地することを確認した",
   "rows": [
     {
       "systemid": "Tokyo_Edogawa",

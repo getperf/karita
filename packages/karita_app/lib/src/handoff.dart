@@ -7,7 +7,7 @@
 /// **用途（棚卸か URL 設定か）はここで決まる。** 書籍 URL だけが URL 単体で判定でき、残り2つは
 /// どちらも「館サイトの一般 URL」で区別がつかない。手がかりは下の [LaunchContext] だけであり、
 /// **それは候補であって証明ではない** — 共有元がその起動操作に対応している保証はないので、
-/// 自動では確定しない（`../karita-ui-probe/docs/browser-handoff.md` §3）。
+/// 自動では確定しない。
 library;
 
 import 'dart:async';
@@ -93,8 +93,7 @@ class HandoffQueue {
   /// 直近の配送が主張していた用途ヒント。**`latest` と対で持つ、同じ「最新1件だけ」の型。**
   ///
   /// 共有テキスト（Android）はヒントを持たないので常に `null`。配送URI（Windows）だけが
-  /// 持ちうる（2026-09-29 決定C' 改訂）。判定材料ではなく手がかりである
-  /// （`../karita-ui-probe/docs/browser-handoff.md` §3）。
+  /// 持ちうる（2026-09-29 決定C' 改訂）。判定材料ではなく手がかりである。
   DeliveryPurposeHint? latestPurposeHint;
 
   LaunchContext? _launch;

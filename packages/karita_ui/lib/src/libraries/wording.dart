@@ -10,8 +10,7 @@ import 'state.dart';
 
 /// 常用館の現在値。**3状態それぞれに別の言葉を出す。**
 ///
-/// 参照切れの文言は `karita-ui-probe/docs/screens/libraries.md` が決めているものをそのまま
-/// 採る（「参照先が見つからないときは『登録していた館が見つかりません』と再選択を促す」）。
+/// 参照切れの文言は仕様で決めたものをそのまま採る（「参照先が見つからないときは『登録していた館が見つかりません』と再選択を促す」）。
 String preferredBranchValue(PreferredBranch branch) => switch (branch.state) {
   PreferredBranchState.unset => '未設定',
   PreferredBranchState.resolved => branch.branchName!,
@@ -63,7 +62,7 @@ String candidateCount({
 
 /// 保存を止める理由。**拒否と警告を混ぜない。**
 ///
-/// 規則の正本は `karita-ui-probe/docs/library-site-url.md` §5。**キーを削って「安全な URL」へ
+/// **キーを削って「安全な URL」へ
 /// 加工しない** — 加工した値が安定したログイン入口である保証が無いので、利用者に送り直して
 /// もらう。
 String? urlRejection(Set<UrlSaveIssue> issues) {

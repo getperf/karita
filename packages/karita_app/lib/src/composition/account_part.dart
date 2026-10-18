@@ -73,8 +73,8 @@ extension CompositionAccount on Composition {
 
   /// ［サインアウト］。**接続の解除までである。**
   ///
-  /// **grant は Google 側に残る**ので、画面は「サインアウトした」と言い切らない
-  /// （`../karita-ui-probe/docs/screens/settings.md`）。別アカウントへの切替は非目標で、
+  /// **grant は Google 側に残る**ので、画面は「サインアウトした」と言い切らない。
+  /// 別アカウントへの切替は非目標で、
   /// 変えるときは外部の導線（`myaccount.google.com/connections`）へ出す — それは段5 である。
   ///
   /// **同期の契機を打たない。** 解除した直後に走らせると、認可が無いまま転送へ出て

@@ -37,8 +37,8 @@ extension CompositionLibrarySettings on Composition {
   /// 開くのは解決済みのマイページ URL（取り込み値 → 既定値 → 公式サイト）。**未設定なら
   /// 開けない** — 行き先が無い。
   ///
-  /// **起動の成功はページ表示でもログイン成功でもない**
-  /// （`../karita-ui-probe/docs/browser-handoff.md` §3）。失敗が分かったら今回の候補を捨てる。
+  /// **起動の成功はページ表示でもログイン成功でもない**。
+  /// 失敗が分かったら今回の候補を捨てる。
   /// **以前の候補を復活させない。**
   Future<void> openLibrarySite(
     String systemId, {

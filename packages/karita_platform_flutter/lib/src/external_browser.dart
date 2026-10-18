@@ -18,8 +18,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 /// 開く。**開けなければ投げる。**
 ///
-/// 起動の成功は**ページ表示でもログイン成功でもない**
-/// （`../karita-ui-probe/docs/browser-handoff.md` §3）。呼ぶ側は「開いた」以上のことを
+/// 起動の成功は**ページ表示でもログイン成功でもない**。
+/// 呼ぶ側は「開いた」以上のことを
 /// この戻り値から読まない。
 Future<void> openInExternalBrowser(Uri url) async {
   final launched = await launchUrl(url, mode: LaunchMode.externalApplication);

@@ -176,8 +176,6 @@ HoldingsSummary shelfHoldings(WidgetRef ref, ShelfBook book) {
 
 /// バッジに出す語。**正本の表の語をそのまま使い、短いものだけを入れる。**
 ///
-/// → `../../../../karita-ui-probe/docs/library-availability.md`
-///
 /// **丸バッジに収まる長さで切る。** 確認時刻と未確認館の数はここへ入れない
 /// （[shelfHoldingsDetail]）— 入れるとバッジが行の主役である書名より幅を取る。
 ///

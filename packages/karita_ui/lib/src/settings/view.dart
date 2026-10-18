@@ -18,8 +18,8 @@ import 'wording.dart';
 
 /// ［設定］タブの本文。**設定画面と図書館管理を入れ替える器である。**
 ///
-/// 図書館管理は専用の Navbar タブを持たず、設定の［図書館設定］行から入る
-/// （`karita-ui-probe/docs/screens/libraries.md`）。**外殻は触らない** — 行き先は4つのままで、
+/// 図書館管理は専用の Navbar タブを持たず、設定の［図書館設定］行から入る。
+/// **外殻は触らない** — 行き先は4つのままで、
 /// 入れ替わるのはこのタブの中だけである。
 class SettingsView extends ConsumerWidget {
   const SettingsView({super.key, required this.contentMaxWidth});
@@ -241,8 +241,7 @@ class _BrowserChoiceRow extends ConsumerWidget {
   }
 }
 
-/// 図書館設定の行。**現在値は区のリスト、操作は専用 UI への［設定］である**
-/// （`karita-ui-probe/docs/screens/settings.md` の表）。
+/// 図書館設定の行。**現在値は区のリスト、操作は専用 UI への［設定］である。**
 class _LibrariesRow extends ConsumerWidget {
   const _LibrariesRow();
   @override

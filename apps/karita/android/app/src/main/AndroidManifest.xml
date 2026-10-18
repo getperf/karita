@@ -27,8 +27,7 @@
         </activity>
         <!-- 標準共有の受け口。**taskAffinity="" で karita のタスクへ載せない** —
              Notice だけを出すとき背後にメイン画面が見えず、閉じればブラウザーへ戻る。
-             起動側のフラグに依存しなくなるのが狙いである
-             （docs/architecture/browser-handoff-implementation.md 決定 E）。 -->
+             起動側のフラグに依存しなくなるのが狙いである。 -->
         <activity
             android:name=".ShareReceiverActivity"
             android:exported="true"
@@ -59,8 +58,7 @@
         </intent>
         <!-- 図書館サイトをブラウザーで開くのに要る（url_launcher）。**無いと Android 11+ の
              パッケージ可視性でブラウザーが見えず、startActivity が落ちる。** 宣言しても
-             できることは増えない — 見えるようになるだけである。
-             → docs/architecture/ui-state-model.md「マイページ URL の編集でこの段に決めたこと」 -->
+             できることは増えない — 見えるようになるだけである。 -->
         <intent>
             <action android:name="android.intent.action.VIEW"/>
             <data android:scheme="https"/>

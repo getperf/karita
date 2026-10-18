@@ -84,8 +84,8 @@ extension CompositionRecords on Composition {
   // 「読みは DB、書きは業務」という層の割れ目を知ることになる。
   //
   // **`LoanReport` / `AreaLoanReport` は通さない。** あちらは pref・city 単位の集計で、
-  // 貸出し仕様の「`systemid` を越えてグループ化しない」と単位が違う
-  // （`../karita-ui-probe/docs/screens/lending.md` §2）。通すのは `LoanReportItem` の平らな
+  // 貸出し仕様の「`systemid` を越えてグループ化しない」と単位が違う。
+  // 通すのは `LoanReportItem` の平らな
   // 列だけで、束ね方は画面が決める。
 
   /// アクティブな Loan。**読み直す契機を決めるのは画面である。**

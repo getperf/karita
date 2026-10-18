@@ -19,9 +19,6 @@
 /// - **層3**: 実 Drive。Google が実際にどう振る舞うかだけを測る（`dart test -P drive`）
 ///
 /// Android の認可は Flutter プラグインを要るので `karita_platform_flutter` が持つ。
-///
-/// 実 Drive で分かっていることは book-sync-model の
-/// `docs/integration/google-drive-appdata.md` と `docs/evidence/drive-appdata/` にある。
 /// とくに「置き換えが無い」「401 が HTTP status として出てこないことがある」は実装に直接効く。
 library;
 

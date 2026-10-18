@@ -9,8 +9,7 @@
 /// 22組しか返らない回があった（`非公開資料:2026-09-16-public-api-live-decisions.md`）。
 /// 理論上の話ではないので、頼んだ館の数と返った館の数を突き合わせて数える。
 ///
-/// **この層は語を持たない。** 出す言葉は UI が持つ。表の正本は
-/// `../../../karita-ui-probe/docs/library-availability.md` にある。
+/// **この層は語を持たない。** 出す言葉は UI が持つ。
 library;
 
 import 'calil_check.dart';

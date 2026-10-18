@@ -1,7 +1,6 @@
 /// 初回起動の画面。**起動ゲートの本体である。**
 ///
-/// 仕様は `../karita-ui-probe/docs/screens/settings.md`「初回と復元」 —
-/// **初回はサインイン後、通常の開始・合流と補助の復旧導線を表示する**である。
+/// **初回はサインイン後、通常の開始・合流と補助の復旧導線を表示する。**
 ///
 /// **先頭はサインインである。** 未認可では一覧が引けない（`TransportAuthError`）ので、
 /// サインインしていない端末に2択を見せても片方が必ず失敗する
@@ -375,7 +374,7 @@ Future<void> _startChecked(
 /// 他の端末を選んだ時点へ戻すことの確認。**戻すときだけ `true`。**
 ///
 /// 出すのは仕様の影響確認のうち初回に当てはまる2つ — 選んだ時点より後の変更が失われること、
-/// 他の端末の同期が止まること（`karita-ui-probe/docs/screens/settings.md`「初回と復元」）。
+/// 他の端末の同期が止まること。
 /// この端末にはまだ未送信が無いので、件数は出さない。
 Future<bool> confirmRewindOthers(BuildContext context, AppBackup backup) async {
   final confirmed = await showDialog<bool>(

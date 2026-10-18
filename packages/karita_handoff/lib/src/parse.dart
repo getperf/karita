@@ -194,8 +194,8 @@ Handoff parseDelivery(String raw) {
 /// 配送 URI が主張する用途。**送り手（拡張）の自己申告であり、証明ではない。**
 ///
 /// `karita_app` の `LaunchPurpose` とは別の型である — こちらは「配送 URI が主張する値」、
-/// あちらは「karita 自身がブラウザーを開いたときに覚えた値」で、信頼度が異なる
-/// （`../karita-ui-probe/docs/browser-handoff.md` §3 の優先順位）。**用途を決めるのは
+/// あちらは「karita 自身がブラウザーを開いたときに覚えた値」で、信頼度が異なる。
+/// **用途を決めるのは
 /// ここではない** — ここは構文として復号するだけで、`LaunchContext` との優劣判断は
 /// 合成層（`karita_app`）が行う（2026-09-29 決定R）。
 enum DeliveryPurposeHint { lending, mypageUrl }

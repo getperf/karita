@@ -9,8 +9,7 @@ import '../handoff.dart';
 ///
 /// **cold start（karita 未起動時に届いた配送）専用の判定である。** 一時保持が信頼できる
 /// 通常のケース（`mypageCandidateOf`/`lendingCandidateOf` が候補を返すケース）は、この型を
-/// 経由せず既存の候補ストリームがそのまま扱う
-/// （`../../../karita-ui-probe/docs/browser-handoff.md` §3「用途ヒントと一時保持の優先順位」）。
+/// 経由せず既存の候補ストリームがそのまま扱う。
 sealed class HandoffTriage {
   const HandoffTriage();
 }

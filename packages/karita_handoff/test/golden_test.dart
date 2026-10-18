@@ -3,8 +3,7 @@
 /// 素材は凍結 spike の3写し（`karita-ui-calil-probe/lib/isbn.dart`、
 /// `karita-ui-calil-android-probe` の `BookInput.kt`、拡張の `popup.js`）とその試験だが、
 /// **3写しは既にずれている** — ホストの見方、URL の数え方、生の ISBN 文字列を受けるかが違う。
-/// 和を取ると誰も決めていない規則になるので、期待値は仕様
-/// （`../karita-ui-probe/docs/calil-book-discovery.md` §2、`browser-handoff.md` §4）から書く。
+/// 和を取ると誰も決めていない規則になるので、期待値は仕様から書く。
 library;
 
 import 'package:karita_handoff/karita_handoff.dart';

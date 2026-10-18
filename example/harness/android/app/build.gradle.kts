@@ -27,7 +27,6 @@ android {
         // **データ領域も別になる。** Android は applicationId ごとにサンドボックスが分かれる
         // ので、改名後の harness は台帳も deviceId も token も持たない新しい端末である。
         // P4b の観測はここで切れており、続けるなら `adopt` から入れ直す。
-        // → docs/architecture/production-app-composition.md「applicationId は本番が継ぐ」
         applicationId = "net.getperf.karita.dev"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion

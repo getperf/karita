@@ -278,8 +278,8 @@ LibrarySystem? prepareCandidate(
 /// マイページ URL の候補1件。**保存までは候補である。**
 ///
 /// **共有元がその起動操作に対応している保証はない**ので、起動情報（[LaunchContext]）は
-/// 候補を組む手がかりであって証明ではない
-/// （`../karita-ui-probe/docs/browser-handoff.md` §3）。画面が対象と値を確認して確定する。
+/// 候補を組む手がかりであって証明ではない。
+/// 画面が対象と値を確認して確定する。
 class MypageCandidate {
   /// 候補の宛先。**起動情報が指していたシステムである。**
   final String systemId;
@@ -306,7 +306,7 @@ class MypageCandidate {
 ///
 /// **用途は URL からは決まらない。** 書籍 URL だけが URL 単体で判定でき、残り2つはどちらも
 /// 「館サイトの一般 URL」で区別がつかない。手がかりは起動情報だけで、**それは候補であって
-/// 証明ではない**（`../karita-ui-probe/docs/browser-handoff.md` §3）。
+/// 証明ではない**。
 ///
 /// `null` を返すのは4つ — 書籍・Notice・起動情報が無い・起動情報が貸出しの用途。
 /// **どれも「この画面の候補ではない」であって、捨ててよいという意味ではない**（書籍の行き先は
@@ -321,8 +321,7 @@ MypageCandidate? mypageCandidateOf(Handoff delivery, LaunchContext? launch) {
   );
 }
 
-/// 貸出しへ戻る候補1件。**URL は持たない** — 貸出しの往復は URL を保存しない
-/// （`../karita-ui-probe/docs/browser-handoff.md` §5「対象地区の貸出しへ／URL 保存なし」）。
+/// 貸出しへ戻る候補1件。**URL は持たない** — 貸出しの往復は URL を保存しない。
 class LendingCandidate {
   /// 候補の宛先。**起動情報が指していたシステムである。**
   final String systemId;

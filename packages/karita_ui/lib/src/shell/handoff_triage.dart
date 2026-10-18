@@ -14,8 +14,7 @@
 /// 地区が一意に決まった受信（`LendingTriageCandidate`/`MypageTriageCandidate`）は
 /// `LendingRoute.onLendingCandidate`/`LibrariesRoute.onMypageCandidate` へ**ここから**渡す。
 /// 「利用者の選択が要る」2種類（`DistrictChoiceNeeded`/`PurposeChoiceNeeded`）だけを自分の
-/// state に持ち、cold start の選択画面（[HandoffTriageScreen]）へ渡す
-/// （`../../../karita-ui-probe/docs/browser-handoff.md` §3）。
+/// state に持ち、cold start の選択画面（[HandoffTriageScreen]）へ渡す。
 ///
 /// **`FirstRunScreen` と同じ「外殻をプリエンプトする」前例に倣う**（`shell.dart`）。karita
 /// 未起動時に届いた配送でも、台帳の準備（初回起動の2択）は先に済ませる — 地区選択は

@@ -497,7 +497,7 @@ void main() {
   });
 
   group('ホスト逆引き（用途ヒント）', () {
-    // fixture の5館。**`../karita-ui-probe/docs/library-site-url.md` §6 の実採取値と同じ。**
+    // fixture の5館。**`mypage-defaults.json` の実採取値と同じ。**
     // Tokyo_Koto だけ取り込み値（demo_fixture.dart の `_importedMypageUrl`）を持ち、残り4区は
     // 既定値表（`assets/libraries/mypage-defaults.json`）から引く。
     const hosts = {

@@ -44,7 +44,6 @@ android {
         // この名前と debug keystore の SHA-1 に紐付き、P4a・P4b の実機証拠が全部この組で取れて
         // いる。**P5b で本番がこれを継ぎ、harness を net.getperf.karita.dev へ動かした**
         // （決定 A）。**追加登録は要らない** — 名前も SHA-1 も変わっていない。
-        // → docs/architecture/production-app-composition.md「applicationId は本番が継ぐ」
         applicationId = "net.getperf.karita"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion

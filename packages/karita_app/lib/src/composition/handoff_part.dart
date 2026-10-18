@@ -32,8 +32,7 @@ extension CompositionHandoff on Composition {
       .where((triage) => triage != null)
       .cast<HandoffTriage>();
 
-  /// [handoffTriage] の判定本体。**優先順位の正本は
-  /// `../../../karita-ui-probe/docs/browser-handoff.md` §3。**
+  /// [handoffTriage] の判定本体。
   ///
   /// **公開しているのは試験のためである**（`mypageUrlFor`/`checkMypageUrl` と同じ扱い）。
   /// 呼ぶのは通常 [handoffTriage] 経由でよい。
@@ -53,8 +52,7 @@ extension CompositionHandoff on Composition {
     // （決定G）、何日も前の別の館を開いた記録が残っていることがある。目的が偶然同じ
     // （例: どちらも lending）だけでは、それが「今回の往復」だという証拠にならない
     // （実機で確認: 港区の URL で開いたのに、古い江東区の一時保持を使ってしまう不具合）。
-    // `LaunchContext.host` は本来この比較のためにある
-    // （`../../../karita-ui-probe/docs/browser-handoff.md` §3「共有 URL との違いを示す材料」）。
+    // `LaunchContext.host` は本来この比較のためにある。
     //
     // **本棚の記録はここで使わない。** 図書館の URL を本棚の記録で振り分けない。
     final launchMatchesUrl =
@@ -162,7 +160,7 @@ extension CompositionHandoff on Composition {
   /// URL のホストから、取り込み値・既定値のマイページ URL が一致する図書館を逆引きする。
   ///
   /// **`homepageUrl`（公式サイト）は使わない**（2026-09-28 実証。5館 fixture で `official` は
-  /// 2/5館ホスト不一致 — `../../../karita-ui-probe/docs/library-site-url.md`）。**公開している
+  /// 2/5館ホスト不一致）。**公開している
   /// のは試験のためである。**
   List<String> systemIdsByMypageHost(String host) {
     final normalized = host.toLowerCase();

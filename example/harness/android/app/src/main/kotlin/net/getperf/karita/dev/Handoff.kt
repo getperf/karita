@@ -4,7 +4,7 @@ package net.getperf.karita.dev
  * 受け取ったテキストから URL を1件だけ取り出す。
  *
  * **受理規則をここに書かない。** ISBN の規則もホストの判定も `karita_handoff`（純 Dart）に
- * 1箇所だけ置くと決めた（docs/architecture/browser-handoff-implementation.md 決定 A・D）。
+ * 1箇所だけ置くと決めた。
  * spike では同じ規則が Dart・JS・Kotlin の3写しになり、1つ直すのに3箇所と3つの試験が要った。
  *
  * ここで止めるのは「URL がちょうど1件あるか」だけである。0件・2件以上・同じ行に説明文が

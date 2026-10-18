@@ -120,7 +120,7 @@
     }
 
     // Amazon は**クエリとフラグメントを落としてから**送る。検索語・追跡値を karita へ渡さない。
-    // 判定はパスだけで足りる（0.5.0、docs/architecture/amazon-share-handoff.md §6）。
+    // 判定はパスだけで足りる（0.5.0）。
     const amazon = amazonPage(url);
     const check = linkCheckPage(url);
     if (calilBookPage(url) || amazon || check) {
