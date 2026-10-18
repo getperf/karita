@@ -36,3 +36,18 @@ Android の Google 認証には自分のパッケージ・署名に対応する�
 開発者の資格情報はこのリポジトリには含みません。
 
 本番・harness を同じデータ領域で同時起動しないでください。同期・復元の試験には専用アカウントとデータを使います。
+
+## Android release 署名
+
+release APK の生成には `apps/karita/android/key.properties` と既存の release keystore が必要です。
+`key.properties.example` をコピーして、自分の署名設定を記入してください。
+`storeFile` は `android/app` からの相対パス、または絶対パスです。
+既存アプリの更新には同じ署名鍵を使います。debug 鍵への自動切り替えは行いません。
+これらのローカルファイルは Git 管理外です。
+
+```powershell
+cd apps/karita
+flutter build apk --release --dart-define-from-file=../../.env
+```
+
+生成物は `apps/karita/build/app/outputs/flutter-apk/app-release.apk` です。

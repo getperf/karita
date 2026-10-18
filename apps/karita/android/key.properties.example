@@ -1,0 +1,6 @@
+# Copy to key.properties (never commit that file or your keystore).
+# storeFile is resolved relative to android/app; forward slashes work on Windows.
+storeFile=../keystore/release.jks
+storePassword=
+keyAlias=
+keyPassword=
