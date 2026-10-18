@@ -111,7 +111,7 @@ const Map<String, String> schemaSources = {
     "payloadHash": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$",
-      "description": "正準化した payload のSHA-256。正準化規則は 非公開資料:sqlite-drive-sync-protocol.md を正本とする。"
+      "description": "正準化した payload のSHA-256。正準化規則は docs/architecture/sqlite-drive-sync-protocol.md を正本とする。"
     },
     "resolvesEventIds": {
       "type": "array",
@@ -357,7 +357,7 @@ const Map<String, String> schemaSources = {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://frsw3.invalid/book-sync-model/schema/payload/library_setting.schema.json",
   "title": "library_setting payload v1",
-  "description": "図書館システムごとの利用者値。常用館とマイページ URL を、カタログ（library_system）から出してここへ置く。entityId は uuid5(namespace, \"<system_id>/<key>\") で導くため、鍵ごとに別の集約になる。これが要点である — 同じ集約に入れると LWW が payload 全体を差し替えるので、二端末が常用館とマイページ URL を別々に変えたとき後勝ちで片方が消える。ローカルのトランザクションを分けても直らない（行が同じだからである）。項目ごとのマージは「payload は全体スナップショットである」という契約の根幹を変えるので採らない。カタログと利用者値は寿命も違う — カタログはカーリル由来で再登録のたびに洗い替えるが、利用者値は洗い替えの対象ではない（非公開資料:libraries-in-sqlite.md 2c）。properties の並びが library_settings テーブルの列順に対応する。required を置かない — tombstone の payload は最小限でよく（validate.payload が required を外す）、required を置くと相手端末からの tombstone が NOT NULL 違反になって適用経路を SQLite のエラーで止める。解除は tombstone で表し、payload は system_id と key だけになる。",
+  "description": "図書館システムごとの利用者値。常用館とマイページ URL を、カタログ（library_system）から出してここへ置く。entityId は uuid5(namespace, \"<system_id>/<key>\") で導くため、鍵ごとに別の集約になる。これが要点である — 同じ集約に入れると LWW が payload 全体を差し替えるので、二端末が常用館とマイページ URL を別々に変えたとき後勝ちで片方が消える。ローカルのトランザクションを分けても直らない（行が同じだからである）。項目ごとのマージは「payload は全体スナップショットである」という契約の根幹を変えるので採らない。カタログと利用者値は寿命も違う — カタログはカーリル由来で再登録のたびに洗い替えるが、利用者値は洗い替えの対象ではない（docs/architecture/libraries-in-sqlite.md 2c）。properties の並びが library_settings テーブルの列順に対応する。required を置かない — tombstone の payload は最小限でよく（validate.payload が required を外す）、required を置くと相手端末からの tombstone が NOT NULL 違反になって適用経路を SQLite のエラーで止める。解除は tombstone で表し、payload は system_id と key だけになる。",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -386,7 +386,7 @@ const Map<String, String> schemaSources = {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://frsw3.invalid/book-sync-model/schema/payload/library_system.schema.json",
   "title": "library_system payload v1",
-  "description": "LibrarySystem 集約のスナップショット。部分更新ではないため、ここに無い項目は「変更なし」ではなく「空」である。分館は独立集約にせず branches 配列として持つ — 別集約にすると、システムと分館が別々に競合して別々に LWW され、libraries.toml が持っていた「設定全体の洗い替え」という粒度が変わる（非公開資料:libraries-in-sqlite.md）。entityId は uuid5(namespace, system_id) で決定的に導くため、二端末が同じ図書館システムを独立に登録しても同じ id を指して競合として立ち、LWW が一件へ収束させる。properties の並びは library_systems テーブルの列の追加順である（contracts/mapping.py が導出する）。0010 で足した preferred_branch_id は ALTER TABLE ADD COLUMN なので version 列より後ろに付き、位置の対応はそこで切れる。列は名前で読み書きする（aggregates.upsert が列名を明示した INSERT を組む）ので位置は効かない。**required を置かない。** tombstone の payload は最小限でよく（validate.payload が required を外す）、required を置くと相手端末からの tombstone が NOT NULL 違反になって適用経路を SQLite のエラーで止める。「取り込めないイベントを破棄しない」と収束の両方が壊れるのは、0005 が system_id に UNIQUE を張らない理由と同じである。tombstone を持つもう一つの集約である Book も同じ形をしている。業務上の不変条件（都道府県・市区町村・分館が少なくとも一つ）は bops_domain の LibrariesConfig.validate が持つ。",
+  "description": "LibrarySystem 集約のスナップショット。部分更新ではないため、ここに無い項目は「変更なし」ではなく「空」である。分館は独立集約にせず branches 配列として持つ — 別集約にすると、システムと分館が別々に競合して別々に LWW され、libraries.toml が持っていた「設定全体の洗い替え」という粒度が変わる（docs/architecture/libraries-in-sqlite.md）。entityId は uuid5(namespace, system_id) で決定的に導くため、二端末が同じ図書館システムを独立に登録しても同じ id を指して競合として立ち、LWW が一件へ収束させる。properties の並びは library_systems テーブルの列の追加順である（contracts/mapping.py が導出する）。0010 で足した preferred_branch_id は ALTER TABLE ADD COLUMN なので version 列より後ろに付き、位置の対応はそこで切れる。列は名前で読み書きする（aggregates.upsert が列名を明示した INSERT を組む）ので位置は効かない。**required を置かない。** tombstone の payload は最小限でよく（validate.payload が required を外す）、required を置くと相手端末からの tombstone が NOT NULL 違反になって適用経路を SQLite のエラーで止める。「取り込めないイベントを破棄しない」と収束の両方が壊れるのは、0005 が system_id に UNIQUE を張らない理由と同じである。tombstone を持つもう一つの集約である Book も同じ形をしている。業務上の不変条件（都道府県・市区町村・分館が少なくとも一つ）は bops_domain の LibrariesConfig.validate が持つ。",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -486,7 +486,7 @@ const Map<String, String> schemaSources = {
         "cancelled",
         "expired"
       ],
-      "description": "非公開資料:loan-lifecycle.md の6状態。"
+      "description": "docs/architecture/loan-lifecycle.md の6状態。"
     },
     "reserved_on": {
       "$ref": "../sync-event.schema.json#/$defs/nullableLocalDate"
@@ -535,7 +535,7 @@ const Map<String, String> schemaSources = {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://frsw3.invalid/book-sync-model/schema/sync-event-v2.schema.json",
   "title": "SyncEvent envelope v2",
-  "description": "端末間で受け渡す不変イベントの封筒の版2。版1との差は任意項目 domainEventType だけである。**版2に積むものは一度にまとめてある。** 版上げは受理集合を先に広げて配り、全端末が追いついてから発行を上げるという二段階を要するため高くつく。後からこの版へ項目を足してはならない — 同じ版番号が二つの形を持ち、版で形を固定する仕組み自体が壊れる。**L4 でこの規則を意図的に一度だけ外れた。** entityType の enum から synced_file を落とし、版番号は2のままとした（非公開資料:libraries-in-sqlite.md）。規則が守っているのは「古い版を持つ端末が、同じ版番号の新しい封筒を読み違えないこと」であり、互換性を保たないと決めた以上、守る対象の端末が存在しない。版3を足すと受理集合・分岐・二段階の配布手順が増えるだけで誰も得をしない。**切替の前に転送先を空にする。** 旧 enum で書かれた synced_file の封筒が残っていると envelope-enum で落ち、pending ではなく invalid として毎 run 数え直される。schemaVersion はこの検証より先に読み、未対応であれば pending_events(reason='schema') に保持する。スキーマ検証の失敗として扱わない。",
+  "description": "端末間で受け渡す不変イベントの封筒の版2。版1との差は任意項目 domainEventType だけである。**版2に積むものは一度にまとめてある。** 版上げは受理集合を先に広げて配り、全端末が追いついてから発行を上げるという二段階を要するため高くつく。後からこの版へ項目を足してはならない — 同じ版番号が二つの形を持ち、版で形を固定する仕組み自体が壊れる。**L4 でこの規則を意図的に一度だけ外れた。** entityType の enum から synced_file を落とし、版番号は2のままとした（docs/architecture/libraries-in-sqlite.md）。規則が守っているのは「古い版を持つ端末が、同じ版番号の新しい封筒を読み違えないこと」であり、互換性を保たないと決めた以上、守る対象の端末が存在しない。版3を足すと受理集合・分岐・二段階の配布手順が増えるだけで誰も得をしない。**切替の前に転送先を空にする。** 旧 enum で書かれた synced_file の封筒が残っていると envelope-enum で落ち、pending ではなく invalid として毎 run 数え直される。schemaVersion はこの検証より先に読み、未対応であれば pending_events(reason='schema') に保持する。スキーマ検証の失敗として扱わない。",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -579,7 +579,7 @@ const Map<String, String> schemaSources = {
         "loan",
         "reading_record"
       ],
-      "description": "版1に library_setting を足した一覧である。**版3を作らずに版2を書き換えた** — 規則が守っているのは「古い版を持つ端末が、同じ版番号の新しい封筒を読み違えないこと」であり、製品を配っていない今、守る対象の端末が存在しない。L4 で synced_file を落としたときと同じ判断である（非公開資料:libraries-in-sqlite.md 2c）。配ってからでは取れない選択なので、本番 GUI より先に入れた。版差として残るのは任意項目 domainEventType だけである。"
+      "description": "版1に library_setting を足した一覧である。**版3を作らずに版2を書き換えた** — 規則が守っているのは「古い版を持つ端末が、同じ版番号の新しい封筒を読み違えないこと」であり、製品を配っていない今、守る対象の端末が存在しない。L4 で synced_file を落としたときと同じ判断である（docs/architecture/libraries-in-sqlite.md 2c）。配ってからでは取れない選択なので、本番 GUI より先に入れた。版差として残るのは任意項目 domainEventType だけである。"
     },
     "entityId": {
       "$ref": "#/$defs/uuid"
@@ -599,7 +599,7 @@ const Map<String, String> schemaSources = {
     "payloadHash": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$",
-      "description": "正準化した payload のSHA-256。正準化規則は 非公開資料:sqlite-drive-sync-protocol.md を正本とする。"
+      "description": "正準化した payload のSHA-256。正準化規則は docs/architecture/sqlite-drive-sync-protocol.md を正本とする。"
     },
     "resolvesEventIds": {
       "type": "array",
@@ -720,7 +720,7 @@ const Map<String, String> schemaSources = {
     "payloadHash": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$",
-      "description": "正準化した payload のSHA-256。正準化規則は 非公開資料:sqlite-drive-sync-protocol.md を正本とする。"
+      "description": "正準化した payload のSHA-256。正準化規則は docs/architecture/sqlite-drive-sync-protocol.md を正本とする。"
     },
     "resolvesEventIds": {
       "type": "array",

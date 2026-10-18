@@ -292,7 +292,7 @@ CREATE INDEX idx_library_memberships_system ON library_memberships (system_id);
 --
 -- **発行と送信の間で落とさない。** domainEventType を outbox に持たせないと、封筒に載せたつもりの
 -- 値が発行から送信までの間に静かに消える。同期層はこの値を解釈しないが、運ぶ責任はある
--- （非公開資料:bops-sync-alignment.md の「DomainEvent は端末ローカルである」）。
+-- （docs/architecture/bops-sync-alignment.md の「DomainEvent は端末ローカルである」）。
 --
 -- schemaVersion の列は足さない。outbox に入るのは自端末が発行した封筒だけで、発行版は常に一つ
 -- である。発行版を上げた後に未送信の行が残れば新しい版として送られるが、eventId も payloadHash も
@@ -304,7 +304,7 @@ ALTER TABLE outbox_events ADD COLUMN domain_event_type TEXT;
 -- 0007 ファイルを同期集約にする（S7-2）。
 --
 -- 設定ファイルのように丸ごとが共有物であるファイルを、専用の転送ではなく封筒の経路で運ぶ。
--- 判定表・正準化・LWW は一行も変わらない（非公開資料:bops-sync-alignment.md）。
+-- 判定表・正準化・LWW は一行も変わらない（docs/architecture/bops-sync-alignment.md）。
 --
 -- logical_name に UNIQUE を張らない。名前空間のずれた実装から別 id の行が届いたとき、UNIQUE
 -- 違反は適用経路を SQLite のエラーで止め、「取り込めないイベントを破棄しない」と収束の両方を
@@ -338,7 +338,7 @@ CREATE TABLE synced_file_materialized (
 -- 0008 LibrarySystem を同期集約にする（L1）。
 --
 -- 図書館システムと分館を libraries.toml から SQLite の同期集約へ移す
--- （非公開資料:libraries-in-sqlite.md）。識別子の定義がファイル側にあり、参照が DB 側に
+-- （docs/architecture/libraries-in-sqlite.md）。識別子の定義がファイル側にあり、参照が DB 側に
 -- あるという二重管理を解く。library_memberships.system_id が指す先が、同じ判定表・正準化・LWW の
 -- 下に入る。
 --
@@ -394,7 +394,7 @@ CREATE INDEX idx_library_systems_system ON library_systems (system_id);
 --
 -- 図書館システムが library_systems の同期集約になり（L1〜L3）、丸ごと共有できるファイルが1件も
 -- 無くなった。synced_file は allowlist に libraries.toml しか持たず、唯一の利用者のために汎用の
--- 仕組みを維持していた（非公開資料:libraries-in-sqlite.md）。
+-- 仕組みを維持していた（docs/architecture/libraries-in-sqlite.md）。
 --
 -- **これは「集約の実体が二つある唯一の集約」を消す段である。** SQLite のトランザクションは
 -- ファイルの置換を含められないため、synced_file だけは適用の原子性を諦め、「集約行を正本、
