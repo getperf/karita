@@ -25,7 +25,11 @@ bool ForwardToRunningInstance() {
   SendAppLink(hwnd);
   // 最小化されていれば戻す。**任意のページが叩ける穴を受け入れた以上、前面化そのものは
   // 防げない**（browser-handoff-implementation.md「受け入れる判断」）。
-  if (IsIconic(hwnd)) ShowWindow(hwnd, SW_RESTORE);
+  if (IsIconic(hwnd)) {
+    ShowWindow(hwnd, SW_RESTORE);
+  } else if (!IsWindowVisible(hwnd)) {
+    ShowWindow(hwnd, SW_SHOW);
+  }
   SetForegroundWindow(hwnd);
   return true;
 }
