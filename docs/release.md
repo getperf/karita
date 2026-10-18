@@ -7,7 +7,15 @@
 Windows 開発環境で、自分の Desktop OAuth 設定とビルド設定を用意して実行します。
 
 ```powershell
-tools/build-windows-store.ps1 -DesktopCredentials <設定ファイルの絶対パス> -DefinesFile <ビルド設定の絶対パス>
+tools/build-windows-store.ps1 -DesktopCredentials <設定ファイルのパス> -DefinesFile <ビルド設定のパス>
+```
+
+`-DefinesFile` の相対パスはリポジトリのルートを基準に解決されます（省略時は `.env`）。
+
+実行例:
+
+```powershell
+tools/build-windows-store.ps1 -DesktopCredentials $env:LOCALAPPDATA\Karita\credentials\karita-core-desktop.json -DefinesFile .env
 ```
 
 既定の MSIX identity は製品の登録値です。第三者が独自配布する場合は自分の発行元・identity を設定してください。
@@ -21,9 +29,13 @@ token / .env / 不要な資格情報が入っていないことを確認し、�
 ## ブラウザー拡張
 
 ```powershell
-npx --yes web-ext@10.7.0 lint --source-dir extension/chromium --ignore-files README.md web-ext-artifacts
-npx --yes web-ext@10.7.0 build --source-dir extension/chromium --artifacts-dir extension/chromium/web-ext-artifacts --ignore-files README.md web-ext-artifacts
+cd <リポジトリのルート>/extension/chromium
+npx --yes web-ext@10.7.0 lint --ignore-files README.md web-ext-artifacts
+npx --yes web-ext@10.7.0 build --ignore-files README.md web-ext-artifacts
 ```
+
+生成物は extension/chromium/web-ext-artifacts/karita_-<版>.zip です。
+同じ版の ZIP が既にあると build は失敗します。作り直す場合は既存の ZIP を退避してから実行してください。
 
 ZIP に manifest.json、popup.html、popup.js、LICENSE、icons/ の3サイズが入ることを確認します。
 Firefox はMozillaの署名・審査、Chrome / Edge は各ストアへの登録が必要です。
