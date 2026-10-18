@@ -1,0 +1,89 @@
+{
+  "case": "03-concurrent-loan",
+  "title": "同一 Loan のオフライン並行更新",
+  "description": "双方が同じ v1 から別内容の v2 を作る。受信側は baseVersion < 現在版 を conflicts に保存し、自動適用しない。ケース02（gap）と入力の形は同じで結果が逆であるため、両方を必ず持つ。step 1 と step 2 は S3 で sync run を挟んで実行する。",
+  "steps": [
+    {
+      "step": 0,
+      "profile": "windows-a",
+      "note": "初期状態。Book B1 と、借出中の Loan L1 を v1 で作る",
+      "events": [
+        {
+          "eventId": "10000000-0000-4000-8000-000000000001",
+          "entityType": "book",
+          "entityId": "aaaaaaaa-0001-4000-8000-000000000001",
+          "operation": "upsert",
+          "baseVersion": 0,
+          "resultVersion": 1,
+          "payload": {
+            "title": "達人プログラマー",
+            "authors": ["David Thomas", "Andrew Hunt"],
+            "isbn13": "9784274226298",
+            "publisher": "オーム社",
+            "published_on": "2016-11-01"
+          }
+        },
+        {
+          "eventId": "10000000-0000-4000-8000-000000000002",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-0002-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 0,
+          "resultVersion": 1,
+          "payload": {
+            "book_id": "aaaaaaaa-0001-4000-8000-000000000001",
+            "system_id": "aaaaaaaa-0003-4000-8000-000000000003",
+            "status": "borrowed",
+            "borrowed_on": "2026-08-04",
+            "due_on": "2026-08-18"
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "profile": "windows-a",
+      "note": "オフラインで返却を記録する（v1 → v2）",
+      "events": [
+        {
+          "eventId": "10000000-0000-4000-8000-000000000003",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-0002-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 1,
+          "resultVersion": 2,
+          "payload": {
+            "book_id": "aaaaaaaa-0001-4000-8000-000000000001",
+            "system_id": "aaaaaaaa-0003-4000-8000-000000000003",
+            "status": "returned",
+            "borrowed_on": "2026-08-04",
+            "due_on": "2026-08-18",
+            "returned_on": "2026-08-15"
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "profile": "android-b",
+      "note": "同じ v1 からオフラインで延長を記録する（v1 → v2）。状態は borrowed のまま due_on だけが動く",
+      "events": [
+        {
+          "eventId": "10000000-0000-4000-8000-000000000004",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-0002-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 1,
+          "resultVersion": 2,
+          "payload": {
+            "book_id": "aaaaaaaa-0001-4000-8000-000000000001",
+            "system_id": "aaaaaaaa-0003-4000-8000-000000000003",
+            "status": "borrowed",
+            "borrowed_on": "2026-08-04",
+            "due_on": "2026-08-29"
+          }
+        }
+      ]
+    }
+  ]
+}

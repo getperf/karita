@@ -1,0 +1,177 @@
+/// Android の認可を、**Play services 無しで**測る。
+///
+/// 実機で確かめるのは「Play services が実際にどう振る舞うか」であって、こちらの判断ではない。
+/// 判断（無音で取る・取れなければ投げる・取り直しは捨ててから取る）は偽の口に対して固定できる。
+/// **固定しておかないと、P4b の「refresh 不能時の `blocked_auth`」が実機で初めて壊れる。**
+library;
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:karita_platform/karita_platform.dart';
+import 'package:karita_platform_flutter/karita_platform_flutter.dart';
+import 'package:karita_sync/karita_sync.dart';
+
+/// 台本どおりに返す偽の Play services。**呼ばれた順を記録する。**
+class _FakeClient implements AndroidAuthorizationClient {
+  /// `tokenForScopes` が順に返すもの。`null` は「無音では取れない」。
+  final List<String?> silent;
+
+  /// `requestScopes` が返すもの。`null` なら、呼ばれること自体を赤にする。
+  final String? interactive;
+
+  final List<String> calls = <String>[];
+  int _initializeCount = 0;
+  int _silentIndex = 0;
+
+  _FakeClient({required this.silent, this.interactive});
+
+  int get initializeCount => _initializeCount;
+
+  @override
+  Future<void> initialize() async {
+    _initializeCount++;
+    calls.add('initialize');
+  }
+
+  @override
+  Future<String?> tokenForScopes(List<String> scopes) async {
+    expect(scopes, <String>[appDataScope]);
+    calls.add('tokenForScopes');
+    return _silentIndex < silent.length ? silent[_silentIndex++] : null;
+  }
+
+  @override
+  Future<String> requestScopes(List<String> scopes) async {
+    expect(scopes, <String>[appDataScope]);
+    calls.add('requestScopes');
+    final token = interactive;
+    if (token == null) {
+      fail('画面を出す requestScopes が同期の経路から呼ばれた');
+    }
+    return token;
+  }
+
+  @override
+  Future<void> clearToken(String accessToken) async {
+    calls.add('clearToken($accessToken)');
+  }
+}
+
+void main() {
+  group('accessToken', () {
+    test('無音で取れたものをそのまま返す', () async {
+      final client = _FakeClient(silent: <String?>['at-1']);
+      final provider = AndroidAccessTokenProvider(client);
+
+      expect(await provider.accessToken(), 'at-1');
+      expect(client.calls, <String>['initialize', 'tokenForScopes']);
+    });
+
+    test('無音で取れなければ TransportAuthError を投げ、画面を出さない', () async {
+      // interactive を渡さないので、requestScopes が呼ばれたら fail する。
+      final client = _FakeClient(silent: <String?>[null]);
+      final provider = AndroidAccessTokenProvider(client);
+
+      await expectLater(
+        provider.accessToken(),
+        throwsA(isA<TransportAuthError>()),
+      );
+      expect(client.calls, isNot(contains('requestScopes')));
+    });
+
+    test('forceRefresh は捨ててから無音で取り直す', () async {
+      final client = _FakeClient(silent: <String?>['at-1', 'at-2']);
+      final provider = AndroidAccessTokenProvider(client);
+
+      expect(await provider.accessToken(), 'at-1');
+      expect(await provider.accessToken(forceRefresh: true), 'at-2');
+
+      // **捨てるのが先で、取り直すのが後である。** 逆だと、サーバに拒まれたものを
+      // そのまま配り直す。
+      expect(client.calls, <String>[
+        'initialize',
+        'tokenForScopes',
+        'initialize',
+        'clearToken(at-1)',
+        'tokenForScopes',
+      ]);
+    });
+
+    test('forceRefresh の後に取れなければ、それが認可の喪失である', () async {
+      final client = _FakeClient(silent: <String?>['at-1', null]);
+      final provider = AndroidAccessTokenProvider(client);
+
+      expect(await provider.accessToken(), 'at-1');
+      await expectLater(
+        provider.accessToken(forceRefresh: true),
+        throwsA(isA<TransportAuthError>()),
+      );
+      expect(client.calls, isNot(contains('requestScopes')));
+    });
+
+    test('配っていないうちの forceRefresh は捨てるものを持たない', () async {
+      final client = _FakeClient(silent: <String?>['at-1']);
+      final provider = AndroidAccessTokenProvider(client);
+
+      expect(await provider.accessToken(forceRefresh: true), 'at-1');
+      expect(client.calls, isNot(contains('clearToken(at-1)')));
+    });
+  });
+
+  group('authorize', () {
+    test('無音で取れるなら画面を出さない', () async {
+      final client = _FakeClient(silent: <String?>['at-1']);
+      await AndroidAccessTokenProvider(client).authorize();
+
+      expect(client.calls, isNot(contains('requestScopes')));
+    });
+
+    test('無音で取れないときだけ画面を出す', () async {
+      final client = _FakeClient(silent: <String?>[null], interactive: 'at-9');
+      final provider = AndroidAccessTokenProvider(client);
+
+      await provider.authorize();
+      expect(client.calls, contains('requestScopes'));
+
+      // 画面で得たものが、次の clearLocalState の対象になっている。
+      await provider.clearLocalState();
+      expect(client.calls, contains('clearToken(at-9)'));
+    });
+  });
+
+  group('clearLocalState', () {
+    test('配ったものを捨てる', () async {
+      final client = _FakeClient(silent: <String?>['at-1']);
+      final provider = AndroidAccessTokenProvider(client);
+
+      await provider.accessToken();
+      await provider.clearLocalState();
+      expect(client.calls, contains('clearToken(at-1)'));
+    });
+
+    test('二度目は捨てるものを持たない', () async {
+      final client = _FakeClient(silent: <String?>['at-1']);
+      final provider = AndroidAccessTokenProvider(client);
+
+      await provider.accessToken();
+      await provider.clearLocalState();
+      final before = client.calls.length;
+      await provider.clearLocalState();
+      expect(client.calls.length, before);
+    });
+  });
+
+  group('authorized', () {
+    test('有無だけを返す', () async {
+      expect(
+        await AndroidAccessTokenProvider(_FakeClient(silent: <String?>['at-1']))
+            .authorized(),
+        isTrue,
+      );
+      expect(
+        await AndroidAccessTokenProvider(_FakeClient(silent: <String?>[null]))
+            .authorized(),
+        isFalse,
+      );
+    });
+  });
+}

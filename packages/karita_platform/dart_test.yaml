@@ -1,0 +1,22 @@
+# 実 Drive を叩く試験は、無印の `dart test` では走らせない。
+#
+# **層1・層2 は token もネットワークも要らないので常に緑になる。** その性質を守るために、
+# 実物を叩くものだけをタグで分け、既定から外す。走らせるときは preset で明示する:
+#
+#     dart test -P drive
+#
+# **`-t drive` では選べない。** 設定の `exclude_tags` は `-t` より強い。preset の側で除外を
+# 外すことで、「明示したときだけ走る」を1つの入口に固定する。
+#
+# **`--run-skipped` は使わない。** それを使うと、token が無いときに各試験が自分で飛ぶための
+# `skip` まで無効になり、認可していない環境で赤くなる。飛んだ理由が見える方を残す。
+tags:
+  drive:
+
+exclude_tags: drive
+
+presets:
+  drive:
+    include_tags: drive
+    # 既定の除外を打ち消す。存在しないタグを指す。
+    exclude_tags: never-matches-any-test

@@ -1,0 +1,45 @@
+name: karita_app
+description: >-
+  合成層。どの実装を使うかを決め、SyncEngine と DomainContext を組み立て、ログ sink を
+  据え、周期リフレッシュを配線する。**合成はここ1つだけである** — 2つあると、本番で
+  通っていない経路を harness が緑にする。harness も本番 GUI もこの利用側に立つ。
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.27.0"
+
+resolution: workspace
+
+dependencies:
+  # **合成層そのものが Flutter に依存する。** 既定パスの解決が path_provider を要るためで、
+  # 「Flutter に依存するのは4箇所」の1つがここである。
+  # → 非公開資料:production-app-composition.md
+  flutter:
+    sdk: flutter
+  karita_contract: ^0.1.0
+  karita_domain: ^0.1.0
+  # **ISBN の受理規則はここにしか無い。** fixture の検査も同じ関門を通す（写しを作らない）。
+  karita_handoff: ^0.1.0
+  karita_platform: ^0.1.0
+  # 外部 API の adapter。**キーもキャッシュも持たない側である**（合成はここで作る）。
+  karita_public_api_client: ^0.1.0
+  karita_book_cache: ^0.1.0
+  karita_platform_flutter: ^0.1.0
+  karita_sync: ^0.1.0
+  # ログは package:logging である。package:logger ではない（決定 A）。
+  # ②③ は Logger を作るだけで sink を知らない形が要る。
+  # → 非公開資料:logging-and-diagnostics.md
+  logging: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  # 試験だけが使う。**MockClient で外部 API を差し替える**（実物を CI の条件にしない）。
+  http: ^1.6.0
+
+flutter:
+  assets:
+    - assets/demo/standard.json
+    - assets/libraries/mypage-defaults.json

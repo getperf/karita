@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "eventId": "10000000-0000-4000-8000-000000000015",
+  "deviceId": "windows-33333333-3333-4333-8333-333333333333",
+  "createdAtUtc": "2026-08-04T09:00:00Z",
+  "entityType": "book",
+  "entityId": "aaaaaaaa-0001-4000-8000-000000000001",
+  "operation": "upsert",
+  "baseVersion": 0,
+  "resultVersion": 1,
+  "payloadHash": "sha256:e6ea323fadb4265d9e2cbd406c606175f082f6f74c53efa029eea04825a8f39e",
+  "resolvesEventIds": [],
+  "payload": {
+    "title": "リーダブルコード",
+    "isbn13": "978-4-87311-565-8"
+  }
+}

@@ -1,0 +1,48 @@
+name: karita_harness
+description: >-
+  開発・検証専用のハーネス。**本番 GUI ではない** — 正本は ../karita-ui-probe にある。
+  規則1「文言を書かない」と規則2「karita_* の公開 API だけを使う」を守る。
+  合成は持たない — karita_app の boot() を呼ぶ利用側である（P5a）。
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.27.0"
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # **合成は作らない。使うだけである**（P5a）。`composition.dart` は karita_app へ移り、
+  # harness はその利用側へ降りた。**合成が2つあると、本番で通っていない経路をここが緑にする。**
+  # → 非公開資料:production-app-composition.md
+  karita_app: ^0.1.0
+  karita_contract: ^0.1.0
+  karita_domain: ^0.1.0
+  karita_platform: ^0.1.0
+  karita_platform_flutter: ^0.1.0
+  karita_sync: ^0.1.0
+  # **`karita_ui` と `flutter_riverpod` は落とした**（2026-09-23。P5b 単位B）。
+  # `lib/shell_probe.dart` のためだけに在ったもので、器（`apps/karita`）ができた時点で
+  # entrypoint ごと消えた。**戻さない** — harness の仕事は「エンジンの公開 API だけで
+  # 操作・観測・状態が成り立つか」であって、本番 GUI を出すことではない。
+  # → 非公開資料:production-app-composition.md「`shell_probe.dart` の期限」
+  # **背面同期は持たない**（2026-09-13 に決め、P5a で `workmanager` 3本を外した。2026-09-14）。
+  #
+  # 閉じている間は何もせず、同期が走るのは**前面3トリガ（起動時・業務更新直後・手動）と、
+  # アプリが起きている間の周期リフレッシュ**だけである。実機で一度も背面の起動を確認できず
+  # （段3-10 で `background-runs.jsonl` の行が0）、`workmanager` は federated で噛み合う組み合わせが
+  # 1つしかなく、`workmanager_apple` が Flutter の下限を決めていた。**未検証の機能が足場を
+  # 縛っていた。**
+  #
+  # **上げ直さない。** 戻す先は合成層の背面の口（`karita_app`）であって、ここではない。
+  # → 非公開資料:production-sync-small-changes.md「背面同期を持たない（2026-09-13）」
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

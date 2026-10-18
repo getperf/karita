@@ -1,0 +1,12 @@
+{
+  "http": {"status": 200, "headers": {"content-type": "application/json"}},
+  "body": {
+    "count": 2,
+    "page": 1,
+    "pageCount": 1,
+    "items": [
+      {"title": "著者不明の本", "isbn": "978-4-00-000000-0"},
+      {"title": "ISBNなしの候補", "author": "名無し", "publisherName": "架空社"}
+    ]
+  }
+}

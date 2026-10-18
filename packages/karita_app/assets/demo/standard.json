@@ -1,0 +1,409 @@
+{
+  "scenario": "standard",
+  "version": 1,
+  "checked_on": "2026-09-15",
+  "books": [
+    {
+      "key": "9784101010014",
+      "isbn13": "9784101010014",
+      "title": "吾輩は猫である",
+      "authors": [
+        "夏目,漱石,1867-1916"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101010014"
+    },
+    {
+      "key": "9784101010021",
+      "isbn13": "9784101010021",
+      "title": "倫敦塔・幻影の盾",
+      "authors": [
+        "夏目漱石／著"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101010021"
+    },
+    {
+      "key": "9784101010038",
+      "isbn13": "9784101010038",
+      "title": "坊っちゃん",
+      "authors": [
+        "夏目,漱石,1867-1916"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101010038"
+    },
+    {
+      "key": "9784101010045",
+      "isbn13": "9784101010045",
+      "title": "三四郎",
+      "authors": [
+        "夏目,漱石/著"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101010045"
+    },
+    {
+      "key": "9784101010052",
+      "isbn13": "9784101010052",
+      "title": "それから",
+      "authors": [
+        "夏目,漱石"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101010052"
+    },
+    {
+      "key": "9784101010069",
+      "isbn13": "9784101010069",
+      "title": "門",
+      "authors": [
+        "夏目,漱石,1867-1916"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101010069"
+    },
+    {
+      "key": "9784101010076",
+      "isbn13": "9784101010076",
+      "title": "明暗 上巻",
+      "authors": [
+        "夏目,漱石/著"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101010076"
+    },
+    {
+      "key": "9784101010090",
+      "isbn13": "9784101010090",
+      "title": "草枕",
+      "authors": [
+        "夏目,漱石,1867-1916"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101010090"
+    },
+    {
+      "key": "9784101010106",
+      "isbn13": "9784101010106",
+      "title": "虞美人草",
+      "authors": [
+        "夏目,漱石"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101010106"
+    },
+    {
+      "key": "9784101010113",
+      "isbn13": "9784101010113",
+      "title": "彼岸過迄",
+      "authors": [
+        "夏目,漱石"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101010113"
+    },
+    {
+      "key": "9784101010120",
+      "isbn13": "9784101010120",
+      "title": "行人",
+      "authors": [
+        "夏目,漱石"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101010120"
+    },
+    {
+      "key": "9784101010137",
+      "isbn13": "9784101010137",
+      "title": "こころ",
+      "authors": [
+        "夏目,漱石,1867-1916"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101010137"
+    },
+    {
+      "key": "9784101010144",
+      "isbn13": "9784101010144",
+      "title": "道草",
+      "authors": [
+        "夏目,漱石"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101010144"
+    },
+    {
+      "key": "9784101010151",
+      "isbn13": "9784101010151",
+      "title": "硝子戸の中",
+      "authors": [
+        "夏目,漱石,1867-1916"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101010151"
+    },
+    {
+      "key": "9784101010168",
+      "isbn13": "9784101010168",
+      "title": "二百十日 ; 野分",
+      "authors": [
+        "夏目,漱石"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101010168"
+    },
+    {
+      "key": "9784101010175",
+      "isbn13": "9784101010175",
+      "title": "坑夫",
+      "authors": [
+        "夏目,漱石"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101010175"
+    },
+    {
+      "key": "9784101010182",
+      "isbn13": "9784101010182",
+      "title": "文鳥 夢十夜",
+      "authors": [
+        "夏目漱石／著"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101010182"
+    },
+    {
+      "key": "9784101010199",
+      "isbn13": "9784101010199",
+      "title": "明暗",
+      "authors": [
+        "夏目,漱石,1867-1916"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101010199"
+    },
+    {
+      "key": "9784101010205",
+      "isbn13": "9784101010205",
+      "title": "三四郎（新潮文庫）",
+      "authors": [
+        "夏目漱石"
+      ],
+      "publisher": "",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101010205"
+    },
+    {
+      "key": "9784101090016",
+      "isbn13": "9784101090016",
+      "title": "天の夕顔",
+      "authors": [
+        "中河,与一,1897-1994"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101090016"
+    },
+    {
+      "key": "9784101020013",
+      "isbn13": "9784101020013",
+      "title": "雁",
+      "authors": [
+        "森,鴎外,1862-1922"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101020013"
+    },
+    {
+      "key": "9784101020020",
+      "isbn13": "9784101020020",
+      "title": "青年",
+      "authors": [
+        "森,鴎外"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101020020"
+    },
+    {
+      "key": "9784101020037",
+      "isbn13": "9784101020037",
+      "title": "ヰタ・セクスアリス",
+      "authors": [
+        "森,鴎外"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101020037"
+    },
+    {
+      "key": "9784101020044",
+      "isbn13": "9784101020044",
+      "title": "阿部一族 舞姫",
+      "authors": [
+        "森鴎外／著"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101020044"
+    },
+    {
+      "key": "9784101020051",
+      "isbn13": "9784101020051",
+      "title": "山椒大夫・高瀬舟",
+      "authors": [
+        "森,鴎外,1862-1922"
+      ],
+      "publisher": "新潮社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784101020051"
+    },
+    {
+      "key": "9784780802047",
+      "isbn13": "9784780802047",
+      "title": "おにぎりレシピ101",
+      "authors": [
+        "山田玲子／著 水野菜生／英訳"
+      ],
+      "publisher": "ポット出版",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784780802047"
+    },
+    {
+      "key": "9784274226298",
+      "isbn13": "9784274226298",
+      "title": "達人プログラマー : 熟達に向けたあなたの旅",
+      "authors": [
+        "Thomas,David,1956- Hunt,Andrew,1964- 村上,雅章,1960-"
+      ],
+      "publisher": "オーム社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784274226298"
+    },
+    {
+      "key": "9784065281499",
+      "isbn13": "9784065281499",
+      "title": "汝、星のごとく",
+      "authors": [
+        "凪良,ゆう"
+      ],
+      "publisher": "講談社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784065281499"
+    },
+    {
+      "key": "9784274069321",
+      "isbn13": "9784274069321",
+      "title": "リーン開発の現場 : カンバンによる大規模プロジェクトの運営",
+      "authors": [
+        "Kniberg,Henrik 角谷,信太郎 市谷,聡啓 藤原,大 オーム社"
+      ],
+      "publisher": "オーム社",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784274069321"
+    },
+    {
+      "key": "9784797369915",
+      "isbn13": "9784797369915",
+      "title": "異能バトルは日常系のなかで",
+      "authors": [
+        "望,公太,1989-"
+      ],
+      "publisher": "ソフトバンククリエイティブ",
+      "source": "https://api.openbd.jp/v1/get?isbn=9784797369915"
+    }
+  ],
+  "libraries": [
+    {
+      "systemid": "Tokyo_Edogawa",
+      "pref": "東京都",
+      "city": "江戸川区",
+      "name": "東京都江戸川区",
+      "homepage_url": "https://www.city.edogawa.tokyo.jp/e026/kuseijoho/gaiyo/shisetsuguide/bunya/gakko/toshokan.html",
+      "source": "https://api.calil.jp/library?systemid=Tokyo_Edogawa&format=json&callback=no",
+      "branches": [
+        {
+          "id": "103894",
+          "calil_libkey": "小岩図書館",
+          "name": "江戸川区立小岩図書館"
+        },
+        {
+          "id": "103895",
+          "calil_libkey": "小松川図書館",
+          "name": "江戸川区立小松川図書館"
+        }
+      ]
+    },
+    {
+      "systemid": "Tokyo_Katsushika",
+      "pref": "東京都",
+      "city": "葛飾区",
+      "name": "東京都葛飾区",
+      "homepage_url": "https://www.lib.city.katsushika.lg.jp/",
+      "source": "https://api.calil.jp/library?systemid=Tokyo_Katsushika&format=json&callback=no",
+      "branches": [
+        {
+          "id": "103974",
+          "calil_libkey": "お花茶屋図書館",
+          "name": "葛飾区立お花茶屋図書館"
+        },
+        {
+          "id": "117508",
+          "calil_libkey": "こすげ地区図書館",
+          "name": "葛飾区立こすげ地区図書館"
+        }
+      ]
+    },
+    {
+      "systemid": "Tokyo_Koto",
+      "pref": "東京都",
+      "city": "江東区",
+      "name": "東京都江東区",
+      "homepage_url": "https://www.koto-lib.tokyo.jp/",
+      "source": "https://api.calil.jp/library?systemid=Tokyo_Koto&format=json&callback=no",
+      "branches": [
+        {
+          "id": "104045",
+          "calil_libkey": "こどもプラザ",
+          "name": "江東区立こどもプラザ図書館"
+        },
+        {
+          "id": "104036",
+          "calil_libkey": "亀戸",
+          "name": "江東区立亀戸図書館"
+        }
+      ]
+    },
+    {
+      "systemid": "Tokyo_Minato",
+      "pref": "東京都",
+      "city": "港区",
+      "name": "東京都港区",
+      "homepage_url": "https://www.lib-minato.jp/",
+      "source": "https://api.calil.jp/library?systemid=Tokyo_Minato&format=json&callback=no",
+      "branches": [
+        {
+          "id": "104074",
+          "calil_libkey": "みなと図書",
+          "name": "港区立みなと図書館"
+        },
+        {
+          "id": "104075",
+          "calil_libkey": "リーブラ",
+          "name": "港区男女平等参画センター｢リーブラ｣図書資料室"
+        }
+      ]
+    },
+    {
+      "systemid": "Tokyo_Sumida",
+      "pref": "東京都",
+      "city": "墨田区",
+      "name": "東京都墨田区",
+      "homepage_url": "https://www.library.sumida.tokyo.jp/",
+      "source": "https://api.calil.jp/library?systemid=Tokyo_Sumida&format=json&callback=no",
+      "branches": [
+        {
+          "id": "112672",
+          "calil_libkey": "ひきふね",
+          "name": "墨田区立ひきふね図書館"
+        },
+        {
+          "id": "104246",
+          "calil_libkey": "八広",
+          "name": "墨田区立八広図書館"
+        }
+      ]
+    }
+  ]
+}

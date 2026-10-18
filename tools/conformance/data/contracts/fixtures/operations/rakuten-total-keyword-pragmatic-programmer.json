@@ -1,0 +1,26 @@
+{
+  "http": {"status": 200, "headers": {"content-type": "application/json"}},
+  "body": {
+    "count": 2,
+    "page": 1,
+    "pageCount": 1,
+    "items": [
+      {
+        "title": "達人プログラマー",
+        "author": "Andrew Hunt/David Thomas",
+        "publisherName": "オーム社",
+        "isbn": "9784274226298",
+        "largeImageUrl": "https://example.invalid/images/pragmatic.jpg",
+        "itemUrl": "https://books.example.invalid/item/9784274226298"
+      },
+      {
+        "title": "達人プログラマー 第2版",
+        "author": "David Thomas/Andrew Hunt",
+        "publisherName": "オーム社",
+        "isbn": "9784295009709",
+        "mediumImageUrl": "https://example.invalid/images/pragmatic-2.jpg",
+        "itemUrl": "https://books.example.invalid/item/9784295009709"
+      }
+    ]
+  }
+}

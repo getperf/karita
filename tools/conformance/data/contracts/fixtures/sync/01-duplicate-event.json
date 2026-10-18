@@ -1,0 +1,29 @@
+{
+  "case": "01-duplicate-event",
+  "title": "同一イベントの再取込",
+  "description": "windows-a が作った1件を android-b が二度取り込む。applied_events の一意制約により業務データは一度だけ変わる。冪等は判定表2行目で先に判定して実現する。主キー衝突を例外で拾う作りにすると、同一トランザクションで先に集約を書いた後に落ちる経路ができる。",
+  "steps": [
+    {
+      "step": 0,
+      "profile": "windows-a",
+      "note": "Book B1 を v1 で作る。これを二度 pull させる",
+      "events": [
+        {
+          "eventId": "10100000-0000-4000-8000-000000000001",
+          "entityType": "book",
+          "entityId": "aaaaaaaa-0101-4000-8000-000000000001",
+          "operation": "upsert",
+          "baseVersion": 0,
+          "resultVersion": 1,
+          "resolvesEventIds": [],
+          "payload": {
+            "title": "リファクタリング",
+            "authors": ["Martin Fowler"],
+            "isbn13": "9784274224546",
+            "publisher": "オーム社"
+          }
+        }
+      ]
+    }
+  ]
+}

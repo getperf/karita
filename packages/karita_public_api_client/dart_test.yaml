@@ -1,0 +1,18 @@
+# 実 API を叩く試験は、無印の `dart test` では走らせない。
+#
+# **固定応答の試験は偽サーバに対して常に緑になる。** その性質を守るために、実物を叩くものだけを
+# タグで分け、既定から外す。走らせるときは preset で明示する:
+#
+#     dart test -P live
+#
+# `karita_platform` の `-P drive` と同じ形である。**入口を2つにしない。**
+tags:
+  live:
+
+exclude_tags: live
+
+presets:
+  live:
+    include_tags: live
+    # 既定の除外を打ち消す。存在しないタグを指す。
+    exclude_tags: never-matches-any-test

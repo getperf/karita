@@ -1,0 +1,63 @@
+{
+  "case": "10-auth-loss",
+  "input": "10-auth-loss.json",
+  "title": "blocked_auth にし、outbox を捨てない",
+  "profiles": ["windows-a"],
+  "script": [
+    {"do": "seed", "profile": "windows-a", "step": 0, "now": "2026-08-04T09:00:00Z"},
+    {"do": "seed", "profile": "windows-a", "step": 1, "now": "2026-08-04T09:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "windows-a",
+      "outbox": {"pending": 2, "blocked_auth": 0}
+    },
+
+    {
+      "do": "push",
+      "profile": "windows-a",
+      "now": "2026-08-04T09:00:00Z",
+      "fault": "auth-401"
+    },
+    {
+      "do": "expect",
+      "profile": "windows-a",
+      "note": "401 を受けた行だけを止める。2件目は pending のまま。転送先には何も出ていない",
+      "outbox": {"pending": 1, "uploading": 0, "uploaded": 0, "blocked_auth": 1},
+      "remote": {"files": 0}
+    },
+    {
+      "do": "expect",
+      "profile": "windows-a",
+      "note": "業務データは残っている。outbox を捨てないとはこのことである",
+      "aggregates": {
+        "book": {
+          "aaaaaaaa-1001-4000-8000-000000000001": {"version": 1, "title": "Clean Architecture"},
+          "aaaaaaaa-1002-4000-8000-000000000002": {"version": 1, "title": "ドメイン駆動設計"}
+        }
+      },
+      "applied_events": 2
+    },
+
+    {
+      "do": "retry",
+      "profile": "windows-a",
+      "event_id": "11000000-0000-4000-8000-000000000001",
+      "now": "2026-08-04T10:00:00Z"
+    },
+    {
+      "do": "expect",
+      "profile": "windows-a",
+      "note": "再認可の後は retry で送信待ちへ戻す",
+      "outbox": {"pending": 2, "blocked_auth": 0}
+    },
+
+    {"do": "push", "profile": "windows-a", "now": "2026-08-04T10:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "windows-a",
+      "note": "止まっていた分も送られる。失われた行は無い",
+      "outbox": {"pending": 0, "uploading": 0, "uploaded": 2, "blocked_auth": 0},
+      "remote": {"files": 2, "events": 2}
+    }
+  ]
+}

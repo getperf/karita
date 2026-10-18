@@ -1,0 +1,34 @@
+.dart_tool/
+.packages
+build/
+
+# 正本のローカルなリンク（張るなら）。コミットしない。
+vendor/
+
+# Flutter のビルド生成物（P4a）。**リポジトリに入れない。**
+example/harness/build/
+example/harness/.dart_tool/
+example/harness/android/.gradle/
+example/harness/android/local.properties
+example/harness/windows/flutter/ephemeral/
+# flutter pub get が書く解決結果。**生成物である。**
+.flutter-plugins-dependencies
+
+# ビルド入力の実値（P5a-4）。**コミットしない。** 雛形は .env.example を追跡する。
+.env
+
+# ブラウザ拡張の提出用パッケージ（web-ext build の生成物）。**コミットしない。**
+extension/chromium/web-ext-artifacts/
+
+# Local-only files and generated artifacts
+.vscode/
+.claude/
+.agents/
+.codex/
+devtools_options.yaml
+**/credentials/
+**/token.json
+*.pfx
+*.pem
+*.msix
+*.xpi

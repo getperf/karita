@@ -1,0 +1,45 @@
+{
+  "case": "03-concurrent-loan",
+  "input": "03-concurrent-loan.json",
+  "title": "同一 Loan のオフライン並行更新",
+  "profiles": ["windows-a", "android-b"],
+  "script": [
+    {"do": "seed", "profile": "windows-a", "step": 0, "now": "2026-08-04T09:00:00Z"},
+    {"do": "sync", "profile": "windows-a", "now": "2026-08-04T09:00:00Z"},
+    {"do": "sync", "profile": "android-b", "now": "2026-08-04T09:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "android-b",
+      "note": "両端末が v1 を持つ。ここまでは競合も保留も無い",
+      "aggregates": {
+        "loan": {
+          "aaaaaaaa-0002-4000-8000-000000000002": {"version": 1, "status": "borrowed"}
+        }
+      },
+      "conflicts": 0,
+      "pending_events": {},
+      "outbox": {"pending": 0}
+    },
+
+    {"do": "seed", "profile": "windows-a", "step": 1, "now": "2026-08-05T09:00:00Z"},
+    {"do": "seed", "profile": "android-b", "step": 2, "now": "2026-08-05T09:00:00Z"},
+    {"do": "sync", "profile": "windows-a", "now": "2026-08-05T09:00:00Z"},
+    {"do": "sync", "profile": "android-b", "now": "2026-08-05T09:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "android-b",
+      "note": "baseVersion < 現在版 は conflicts。自動適用しないのでローカルは延長のまま",
+      "aggregates": {
+        "loan": {
+          "aaaaaaaa-0002-4000-8000-000000000002": {
+            "version": 2,
+            "status": "borrowed",
+            "due_on": "2026-08-29"
+          }
+        }
+      },
+      "conflicts": 1,
+      "pending_events": {}
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "case": "16-mixed-schema-versions",
+  "input": "16-mixed-schema-versions.json",
+  "title": "新旧の版が混在する転送先",
+  "profiles": ["android-b"],
+  "script": [
+    {"do": "apply", "profile": "android-b", "step": 0},
+    {"do": "pull", "profile": "android-b", "now": "2026-08-05T09:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "android-b",
+      "note": "受理集合の中の2件は版が違っても両方適用される。保持されるのは集合の外の1件だけである",
+      "aggregates": {
+        "book": {
+          "aaaaaaaa-1601-4000-8000-000000000001": {"version": 1, "title": "達人プログラマー"},
+          "aaaaaaaa-1601-4000-8000-000000000002": {"version": 1, "title": "リファクタリング"}
+        },
+        "loan": {}
+      },
+      "pending_events": {"schema": 1},
+      "applied_events": 2,
+      "conflicts": 0
+    }
+  ]
+}

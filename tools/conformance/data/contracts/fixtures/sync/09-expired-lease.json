@@ -1,0 +1,29 @@
+{
+  "case": "09-expired-lease",
+  "title": "失効した uploading lease",
+  "description": "送信中にプロセスが落ちた状態を作る。lease を持ったまま uploading に残った行は、期限を過ぎるまで誰も触ってはならない。失効した後は pending へ回復し、再び送信の対象になる。回復しても attempts は減らさない — 何回試したかは診断の情報であり、回復で消してはならない。失効 lease が自然に発生する経路は upload-timeout だけであり、これがケース08 と同じ機構の二つ目の出口である。",
+  "steps": [
+    {
+      "step": 0,
+      "profile": "windows-a",
+      "note": "送信対象を1件作る",
+      "events": [
+        {
+          "eventId": "10900000-0000-4000-8000-000000000001",
+          "entityType": "book",
+          "entityId": "aaaaaaaa-0901-4000-8000-000000000001",
+          "operation": "upsert",
+          "baseVersion": 0,
+          "resultVersion": 1,
+          "payload": {
+            "title": "プログラミング言語Go",
+            "authors": [
+              "Alan A. A. Donovan",
+              "Brian W. Kernighan"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

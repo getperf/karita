@@ -1,0 +1,18 @@
+name: karita_domain
+description: >-
+  業務ドメイン。Book / Loan / LibrarySystem / LibraryMembership の4集約に固定する。
+  外部 API adapter は持たず port だけを持つ（実装は karita-provider-gateway）。
+  karita_sync に依存しない — 業務から同期への経路は outbox 追記の一点だけである。
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+
+resolution: workspace
+
+dependencies:
+  karita_contract: ^0.1.0
+
+dev_dependencies:
+  test: ^1.25.0

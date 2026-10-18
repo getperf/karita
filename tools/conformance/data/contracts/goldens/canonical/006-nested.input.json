@@ -1,0 +1,15 @@
+{
+  "outer": {
+    "b": [
+      {
+        "y": 1,
+        "x": 2
+      }
+    ],
+    "a": null
+  },
+  "authors": [
+    "Boswell",
+    "Foucher"
+  ]
+}

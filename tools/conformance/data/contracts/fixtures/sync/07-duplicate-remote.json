@@ -1,0 +1,61 @@
+{
+  "case": "07-duplicate-remote",
+  "title": "Drive 上の同名ファイル2件",
+  "description": "Drive は同名ファイルの重複作成を許すため、一覧結果には同じ eventId が複数現れうる。ファイル名ではなく eventId で数え、整列してから先頭を採る。内容が同じ複製（step 0 を二度置く）は落として構わないが、内容の違う複製（step 1）は「Drive上のイベントは不変」の違反であり、黙って落とさず報告する。どちらの場合も業務データは一度しか変わらない。このケースは envelopes で書く。現行の実装は同じ eventId で違う内容の封筒を生成できないためである。",
+  "steps": [
+    {
+      "step": 0,
+      "profile": "android-b",
+      "note": "正本となる封筒。duplicate-name の下で二度置くと、同じ eventId のファイルが2件できる",
+      "envelopes": [
+        {
+          "schemaVersion": 1,
+          "eventId": "10700000-0000-4000-8000-000000000001",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-08-04T09:00:00Z",
+          "entityType": "book",
+          "entityId": "aaaaaaaa-0701-4000-8000-000000000001",
+          "operation": "upsert",
+          "baseVersion": 0,
+          "resultVersion": 1,
+          "payloadHash": "sha256:ad97396432e161484489c4c9e913c30c2558b30b87adaf58f1b25b85f1cce8d3",
+          "resolvesEventIds": [],
+          "payload": {
+            "title": "達人プログラマー",
+            "authors": [
+              "Andrew Hunt",
+              "David Thomas"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "profile": "android-b",
+      "note": "同じ eventId で内容だけが違う封筒。ハッシュ不一致の重複であり、報告の対象になる",
+      "envelopes": [
+        {
+          "schemaVersion": 1,
+          "eventId": "10700000-0000-4000-8000-000000000001",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-08-04T09:00:00Z",
+          "entityType": "book",
+          "entityId": "aaaaaaaa-0701-4000-8000-000000000001",
+          "operation": "upsert",
+          "baseVersion": 0,
+          "resultVersion": 1,
+          "payloadHash": "sha256:86d812840b1b16e4e4631911ec76b2f86d9b769f5bf42c878442f60e5147bf48",
+          "resolvesEventIds": [],
+          "payload": {
+            "title": "達人プログラマー 第2版",
+            "authors": [
+              "Andrew Hunt",
+              "David Thomas"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

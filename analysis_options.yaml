@@ -1,0 +1,18 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  exclude:
+    # 凍結（2026-09-02）まで生成物だった。いまは正本である。
+    # golden を書き換えるときは conformance update-goldens --write を通す。
+    - "**/generated/**"
+    - "tools/conformance/data/**"
+
+linter:
+  rules:
+    # **await の付け忘れを赤にする。** どちらも `package:lints/recommended` には入っていない。
+    #
+    # 転送と保管先の口を非同期にしたとき、90箇所へ機械的に `await` を足した。付け忘れた
+    # `Future` は捨てられて**そのまま緑になる** — 送信も復元も、走らなかったことが結果に
+    # 現れない経路がある。人手の注意ではなく機械で塞ぐ。
+    - unawaited_futures
+    - discarded_futures

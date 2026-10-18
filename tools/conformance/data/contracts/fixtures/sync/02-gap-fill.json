@@ -1,0 +1,60 @@
+{
+  "case": "02-gap-fill",
+  "title": "gap 到着 → 後続で穴埋め",
+  "description": "android-b が v2 の封筒を先に受け取る。baseVersion > 現在版 は pending_events(reason='gap') であって競合ではない。先行イベント（v1）が届いた再走査で解ける。ケース03 と入力の形は同じで結果が逆であるため、両方を必ず持つ。envelopes で受信側へ直接置き、到着順を明示的に逆転させる。",
+  "steps": [
+    {
+      "step": 0,
+      "profile": "android-b",
+      "note": "先に v2 が届く。ローカルには実体が無いので gap である",
+      "envelopes": [
+        {
+          "schemaVersion": 1,
+          "eventId": "10200000-0000-4000-8000-000000000002",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-08-05T09:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-0202-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 1,
+          "resultVersion": 2,
+          "payloadHash": "sha256:b3bf8ea0ffc44ffc494d0088c2ea573375f0325795e672b85eb263411075d8f8",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-0201-4000-8000-000000000001",
+            "status": "returned",
+            "borrowed_on": "2026-08-04",
+            "due_on": "2026-08-18",
+            "returned_on": "2026-08-05"
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "profile": "android-b",
+      "note": "遅れて v1 が届く。gap が解け、v1 → v2 の順に適用される",
+      "envelopes": [
+        {
+          "schemaVersion": 1,
+          "eventId": "10200000-0000-4000-8000-000000000001",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-08-04T09:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-0202-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 0,
+          "resultVersion": 1,
+          "payloadHash": "sha256:65e161c80e00df8520653339f38e513a1b716683ed2be995d05174326d039155",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-0201-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-08-04",
+            "due_on": "2026-08-18"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+name: karita_handoff
+description: >-
+  ブラウザーから来た URL の解析・分類・ISBN 正規化。**受理規則はここ1箇所だけに置く。**
+  純 Dart であり、Flutter にも dart:io にも依存しない — 受理規則の試験を無印の
+  dart test で回すためである。用途（予約・棚卸・URL 設定）は判定しない。
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+
+resolution: workspace
+
+dev_dependencies:
+  # **本体は依存を持たない。** karita_contract を引くのは「取り込んだ ISBN-13 が
+  # Books.adopt の採番と同じ値になる」を試験で固定するためだけである。
+  karita_contract: ^0.1.0
+  test: ^1.25.0

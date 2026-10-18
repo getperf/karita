@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "eventId": "10000000-0000-4000-8000-000000000013",
+  "deviceId": "windows-33333333-3333-4333-8333-333333333333",
+  "createdAtUtc": "2026-08-04T09:00:00Z",
+  "entityType": "book",
+  "entityId": "aaaaaaaa-0001-4000-8000-000000000001",
+  "operation": "upsert",
+  "baseVersion": 0,
+  "resultVersion": 1,
+  "payloadHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "resolvesEventIds": [],
+  "payload": {
+    "title": "リーダブルコード",
+    "isbn13": "9784873115658",
+    "book_references": [
+      {
+        "score": 4.5
+      }
+    ]
+  }
+}

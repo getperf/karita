@@ -1,0 +1,7 @@
+# ソースは LF で保存する。checkout の設定でバイト列が揺れないようにする。
+* text=auto eol=lf
+
+# 生成物。バイト列がそのまま往復しなければ自己検査が赤になるため、改行変換を一切させない。
+# ゴールデンは正準化後のバイト列そのものが契約であり、制御文字を中身として持つ。
+tools/conformance/data/** -text linguist-generated=true
+packages/karita_contract/lib/src/generated/** linguist-generated=true

@@ -1,0 +1,24 @@
+name: karita_platform
+description: >-
+  ③ プラットフォーム適配の純 Dart 分。appDataFolder の転送・保管先と Drive の口、
+  そして先の段で Drive REST と Windows の loopback + PKCE。karita_sync が定義する
+  port の実装側であり、依存の向きは karita_platform → karita_sync である。
+  逆にすると karita_sync が Flutter に汚染される。
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+
+resolution: workspace
+
+dependencies:
+  crypto: ^3.0.7
+  ffi: ^2.1.0
+  http: ^1.4.0
+  karita_contract: ^0.1.0
+  karita_sync: ^0.1.0
+
+dev_dependencies:
+  test: ^1.25.0
+  archive: ^4.2.0

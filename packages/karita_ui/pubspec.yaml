@@ -1,0 +1,47 @@
+name: karita_ui
+description: >-
+  本番 GUI の画面と状態。基本データを購読する Provider、ID 指定の詳細、画面の入力状態・
+  表示条件・**文言**を持つ。**ここが文言を持つ側である** — 規則1「文言を書かない」は
+  example/harness の規則であって、この package には掛からない。
+  **karita_sync と karita_platform を直接 import しない** — 生の DB 接続や同期 Engine を
+  操作する代わりに、合成層（karita_app）の窓口を使う。機械で見る（test/boundary_test.dart）。
+  → 非公開資料:ui-state-model.md
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.27.0"
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # 採用版は 2026-09-16 に決めた（ステートモデル §3.2）。**コード生成あり。**
+  flutter_riverpod: ^3.4.3
+  riverpod_annotation: ^4.0.7
+  # **合成層の窓口。** 台帳も同期も、ここ越しにしか触らない。
+  karita_app: ^0.1.0
+  # 業務の型（LibrarySystem 等）。**照会の口は karita_app が持つ。**
+  karita_domain: ^0.1.0
+  karita_handoff: ^0.1.0
+  karita_cover: ^0.1.0
+  karita_public_api_client: ^0.1.0
+  flutter_svg: ^2.2.0
+  unorm_dart: ^0.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.16.1
+  riverpod_generator: ^4.0.9
+  # **riverpod_lint は pubspec に入れない。** analysis_options.yaml の `plugins:` である
+  # （3系から analysis_server_plugin 方式になり、custom_lint は要らない）。
+  #
+  # **karita_platform は試験の足場だけである。** `compose()` に渡す `AppPaths` と
+  # `DeviceSettings` の型を名前で呼ぶために要る。**dependencies には入れない** —
+  # lib/ からの import は test/boundary_test.dart が赤にする。
+  karita_platform: ^0.1.0
+  # **偽の応答で蔵書照会の塗り替えを通すためだけである。** lib/ からは import しない。
+  http: ^1.6.0

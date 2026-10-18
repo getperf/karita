@@ -1,0 +1,68 @@
+{
+  "description": "受入ケース12。同じ入力から Python と Dart が同じバイト列を作ることを確かめる。`canonical` は入力文書全体を正準化した生の UTF-8 バイト列であり、末尾に改行を付けない。`sha256` はそのバイト列の SHA-256 で、payload を入力とする場合は payloadHash と同じ値になる。規則の正本は docs/architecture/sqlite-drive-sync-protocol.md にある。",
+  "cases": [
+    {
+      "id": "001-empty",
+      "description": "空のオブジェクト",
+      "input": "001-empty.input.json",
+      "canonical": "001-empty.canonical",
+      "sha256": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "id": "002-non-ascii",
+      "description": "非ASCIIをエスケープせず UTF-8 のまま出す",
+      "input": "002-non-ascii.input.json",
+      "canonical": "002-non-ascii.canonical",
+      "sha256": "sha256:52982d97ee19589480ad10ebcef1858031c912f9b8a682413de43a2fc9d2ee74"
+    },
+    {
+      "id": "003-astral",
+      "description": "BMP外の文字（𠮟 U+20B9F）を値に含む。値は並べ替えないため、キーの順序規則の影響を受けない",
+      "input": "003-astral.input.json",
+      "canonical": "003-astral.canonical",
+      "sha256": "sha256:d523ecbbec481696f3b843f8309eb34c35e2271b8c8f2d19e5e13e45e21c1841"
+    },
+    {
+      "id": "004-control",
+      "description": "制御文字のエスケープ形。短縮形と \\u00XX の hex の大小を、規則ではなくバイト列で確定させる",
+      "input": "004-control.input.json",
+      "canonical": "004-control.canonical",
+      "sha256": "sha256:3efce9cdd8da72182c3fa325ef76da7d8660165f1c94873a8606abed9f92e365"
+    },
+    {
+      "id": "005-key-order",
+      "description": "キーはコードポイント昇順。ASCII の範囲では Dart の String.compareTo と一致する",
+      "input": "005-key-order.input.json",
+      "canonical": "005-key-order.canonical",
+      "sha256": "sha256:7f9f91cf93d2eee051eeafb4d5ecdd32e618264269b1df30507e863f7bb9a3a1"
+    },
+    {
+      "id": "006-nested",
+      "description": "入れ子のオブジェクトも並べ替える。配列の順序は入力のまま保つ",
+      "input": "006-nested.input.json",
+      "canonical": "006-nested.canonical",
+      "sha256": "sha256:f729b8a1a3d0bad61d0bb1c5dd5c08ebda592e05e994916076af6e0e629eaa75"
+    },
+    {
+      "id": "007-int-bounds",
+      "description": "整数の境界と真偽・null。上限は 2^53-1（Dart の Web での安全な整数）",
+      "input": "007-int-bounds.input.json",
+      "canonical": "007-int-bounds.canonical",
+      "sha256": "sha256:298b44ca6c14ce67e40bf50d54ce0e245f7d6a518068e543bf7b1d91f235a080"
+    },
+    {
+      "id": "008-envelope-empty-resolves",
+      "description": "封筒全体。resolvesEventIds は空でも省略せず [] を書く",
+      "input": "008-envelope-empty-resolves.input.json",
+      "canonical": "008-envelope-empty-resolves.canonical",
+      "sha256": "sha256:00800bbf6b3cdadc921362ecb2a2fbc634ce559189c681d830c3e595dc9a4508"
+    },
+    {
+      "id": "009-envelope-with-resolves",
+      "description": "封筒全体。resolvesEventIds が非空の場合",
+      "input": "009-envelope-with-resolves.input.json",
+      "canonical": "009-envelope-with-resolves.canonical",
+      "sha256": "sha256:c72921e2c3b2c08777aba3bf759220d806f2e6a4b504d1567af49ed8c80d80f2"
+    }
+  ]
+}

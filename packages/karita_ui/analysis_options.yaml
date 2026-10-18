@@ -1,0 +1,15 @@
+# **ルートを継ぐ。** `unawaited_futures` / `discarded_futures` はここにも掛かる。
+include: ../../analysis_options.yaml
+
+analyzer:
+  exclude:
+    # **このリポジトリ初の生成物である**（`schema.g.dart` / `migrations.g.dart` は 2026-09-02 の
+    # 凍結で生成器ごと消え、いまは普通のソースである）。ルートが全体に掛けている
+    # `unawaited_futures` / `discarded_futures` は生成物を赤にするので、ここで外す。
+    - "**/*.g.dart"
+    # flutter tool が足す。**消しても次の `flutter test` で戻る。**
+    - build/**
+
+# **riverpod_lint はまだ入れない**（2026-09-16 に実測して差し戻した）。
+# workspace では `plugins:` を内側に書けず、ルートに書くと harness へ漏れる。
+# → 非公開資料:ui-state-model.md 3.2「riverpod_lint は workspace では入らない」

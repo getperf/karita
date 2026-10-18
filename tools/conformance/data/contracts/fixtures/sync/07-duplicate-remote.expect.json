@@ -1,0 +1,55 @@
+{
+  "case": "07-duplicate-remote",
+  "input": "07-duplicate-remote.json",
+  "title": "eventId で重複排除。payloadHash 一致・不一致の両方",
+  "profiles": ["android-b"],
+  "script": [
+    {"do": "apply", "profile": "android-b", "step": 0, "fault": "duplicate-name"},
+    {"do": "apply", "profile": "android-b", "step": 0, "fault": "duplicate-name"},
+    {
+      "do": "expect",
+      "profile": "android-b",
+      "note": "同じ内容のファイルが2件。転送先の時点では重複している",
+      "remote": {"files": 2, "events": 1}
+    },
+
+    {"do": "pull", "profile": "android-b", "now": "2026-08-05T09:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "android-b",
+      "note": "ファイル数ではなく eventId 数で数える。適用は一度だけ",
+      "aggregates": {
+        "book": {
+          "aaaaaaaa-0701-4000-8000-000000000001": {"version": 1, "title": "達人プログラマー"}
+        }
+      },
+      "applied_events": 1,
+      "conflicts": 0,
+      "pending_events": {}
+    },
+
+    {"do": "apply", "profile": "android-b", "step": 1, "fault": "duplicate-name"},
+    {
+      "do": "expect",
+      "profile": "android-b",
+      "note": "同じ eventId で内容だけが違うファイルが増えた",
+      "remote": {"files": 3, "events": 1}
+    },
+
+    {"do": "pull", "profile": "android-b", "now": "2026-08-06T09:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "android-b",
+      "note": "内容の違う複製が届いても業務データは変わらない。判定表2行目が冪等に無視する",
+      "aggregates": {
+        "book": {
+          "aaaaaaaa-0701-4000-8000-000000000001": {"version": 1, "title": "達人プログラマー"}
+        }
+      },
+      "applied_events": 1,
+      "conflicts": 0,
+      "pending_events": {},
+      "remote": {"files": 3, "events": 1}
+    }
+  ]
+}

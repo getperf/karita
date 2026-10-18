@@ -1,0 +1,100 @@
+{
+  "description": "受入ケース05。取り込みを拒否すべき封筒の一覧である。code は実装が返すエラーコードで、Python と Dart が共有する契約である。形式の正本は docs/validation/acceptance-matrix.md と src/contracts/schema/ にある。",
+  "cases": [
+    {
+      "file": "01-broken-json.json",
+      "code": "json",
+      "note": "JSON として閉じていない"
+    },
+    {
+      "file": "02-duplicate-key.json",
+      "code": "json-duplicate-key",
+      "note": "同じキーが2回。後勝ちで読むと宣言ハッシュと一致したまま通る"
+    },
+    {
+      "file": "03-bad-event-id.json",
+      "code": "envelope-format",
+      "note": "eventId が UUID の形をしていない"
+    },
+    {
+      "file": "04-offset-timestamp.json",
+      "code": "envelope-format",
+      "note": "createdAtUtc がオフセット表記。Z終端のみを許す"
+    },
+    {
+      "file": "05-bad-payload-hash-format.json",
+      "code": "envelope-format",
+      "note": "payloadHash が sha256: 前置の64桁hexでない"
+    },
+    {
+      "file": "06-payload-hash-mismatch.json",
+      "code": "payload-hash",
+      "note": "書式は正しいが payload と一致しない。スキーマでは表現できない"
+    },
+    {
+      "file": "07-result-version-not-greater.json",
+      "code": "version-order",
+      "note": "resultVersion <= baseVersion。二項目の関係はスキーマで表現できない"
+    },
+    {
+      "file": "08-unknown-entity-type.json",
+      "code": "envelope-enum",
+      "note": "entityType が7集約のどれでもない"
+    },
+    {
+      "file": "09-extra-envelope-key.json",
+      "code": "envelope-unknown-key",
+      "note": "封筒に余分なキー。additionalProperties: false"
+    },
+    {
+      "file": "10-unknown-payload-key.json",
+      "code": "payload-unknown-key",
+      "note": "綴り間違い。捨てるとデータの欠落として静かに通る"
+    },
+    {
+      "file": "11-missing-required-book-id.json",
+      "code": "payload-missing-key",
+      "note": "loan の必須項目が無い。DDL の NOT NULL に対応する"
+    },
+    {
+      "file": "12-bad-loan-status.json",
+      "code": "payload-enum",
+      "note": "status が6状態のどれでもない"
+    },
+    {
+      "file": "13-float-in-payload.json",
+      "code": "canonical-float",
+      "note": "浮動小数は言語間で表記が揺れる。スキーマが拘束しない自由なオブジェクトの中でも止める"
+    },
+    {
+      "file": "14-bad-local-date.json",
+      "code": "payload-format",
+      "note": "0埋めのない暦日。S1 の手書き検査は任意の文字列を通していた"
+    },
+    {
+      "file": "15-bad-isbn13.json",
+      "code": "payload-format",
+      "note": "ハイフン入りの ISBN"
+    },
+    {
+      "file": "16-missing-schema-version.json",
+      "code": "schema-version",
+      "note": "schemaVersion が無い。封筒全体の検証より先に読む"
+    },
+    {
+      "file": "17-non-ascii-payload-key.json",
+      "code": "canonical-key-non-ascii",
+      "note": "非ASCIIのキー。Python のコードポイント順と Dart の UTF-16 順が食い違う"
+    },
+    {
+      "file": "18-int-out-of-range.json",
+      "code": "canonical-int-range",
+      "note": "2^53 を超える整数。Dart の Web では double になり値が変わる"
+    },
+    {
+      "file": "19-version-out-of-range.json",
+      "code": "envelope-value",
+      "note": "版が 2^53 を超える。封筒スキーマの $defs/version が上限を持つ"
+    }
+  ]
+}

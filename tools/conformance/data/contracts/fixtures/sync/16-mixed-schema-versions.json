@@ -1,0 +1,65 @@
+{
+  "case": "16-mixed-schema-versions",
+  "title": "新旧の版が混在する転送先",
+  "description": "転送先の appDataFolder は BLIB_HOME を消しても初期化されないため、版を上げても旧版の封筒はそこに残り続ける。受理する版が集合であれば、旧版の封筒はその版のスキーマで検証されて通り、pending(schema) へは落ちない。落ちるのは集合の外だけである。版2の封筒には版2でしか宣言されていない任意項目（domainEventType）を入れてある。版番号だけを変えた封筒では、封筒を読み直す入口がその封筒の版で引いていないという穴を通過してしまう。L4 までは entityType の synced_file が版差の題材だった。synced_file を落とした時点で版2の enum は版1と一致し、版差は domainEventType だけになった（docs/architecture/libraries-in-sqlite.md）。このケースは events では書けない。schemaVersion は派生項目であり実装が入れるため、fixture に書くと拒否される。",
+  "steps": [
+    {
+      "step": 0,
+      "profile": "android-b",
+      "note": "版1・版2・受理集合の外の3件が同じ転送先に混在する。受理するのは版1と版2である",
+      "envelopes": [
+        {
+          "schemaVersion": 1,
+          "eventId": "11600000-0000-4000-8000-000000000001",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-08-04T09:00:00Z",
+          "entityType": "book",
+          "entityId": "aaaaaaaa-1601-4000-8000-000000000001",
+          "operation": "upsert",
+          "baseVersion": 0,
+          "resultVersion": 1,
+          "payloadHash": "sha256:6cd8c442761469f1bd29909f24cc3e9dbea9c2cf459786766bc4b4dad1e92cf3",
+          "resolvesEventIds": [],
+          "payload": {
+            "title": "達人プログラマー"
+          }
+        },
+        {
+          "schemaVersion": 2,
+          "eventId": "11600000-0000-4000-8000-000000000002",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-08-04T09:05:00Z",
+          "entityType": "book",
+          "entityId": "aaaaaaaa-1601-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 0,
+          "resultVersion": 1,
+          "payloadHash": "sha256:81406fb4869e14a2f137d44550d710f93b0404ee661b004adce780bd5c85689f",
+          "resolvesEventIds": [],
+          "domainEventType": "BookRegistered",
+          "payload": {
+            "title": "リファクタリング"
+          }
+        },
+        {
+          "schemaVersion": 99,
+          "eventId": "11600000-0000-4000-8000-000000000003",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-08-04T09:10:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1602-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 0,
+          "resultVersion": 1,
+          "payloadHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1601-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-08-04"
+          }
+        }
+      ]
+    }
+  ]
+}

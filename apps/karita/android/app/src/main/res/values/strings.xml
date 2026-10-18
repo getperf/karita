@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  受信 Activity の Notice。**「文言の正本は ../karita-ui-probe」の唯一の例外である。**
+
+  URL が0件・2件以上・長すぎのときはアプリを起こさないと仕様が決めており、Notice を出すのは
+  Flutter が動く前なので、Dart から文言を供給できない。**ここに増やさないこと** — 受理規則に
+  関わる文言が増えたら、それは Kotlin 側に規則が漏れた合図である。
+-->
+<resources>
+    <string name="handoff_notice_title">取り込めません</string>
+    <string name="handoff_notice_close">閉じる</string>
+    <string name="handoff_no_url">ページの URL を共有してください。</string>
+    <string name="handoff_multiple_url">URL を1件だけ共有してください。</string>
+    <string name="handoff_too_long">共有されたテキストが長すぎます。</string>
+</resources>

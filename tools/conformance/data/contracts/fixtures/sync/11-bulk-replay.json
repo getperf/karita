@@ -1,0 +1,496 @@
+{
+  "case": "11-bulk-replay",
+  "title": "長期不在後の一括再生",
+  "description": "2週間起動していなかった端末が25件を順不同で受け取る。この用途では二端末の同時編集よりこちらの方がはるかに多く起きる。gap の連鎖は1パスの再走査では解けない — v5、v4、v3 の順に届くと1パスで解けるのは v3 の1件だけである。適用が進む限り繰り返す不動点ループが要る。step 0 と step 1 に分けてあるのは、再生の途中でプロセスが落ちた状況を作るためである。1受信イベント = 1トランザクションなので、step 0 までの適用は残る。",
+  "steps": [
+    {
+      "step": 0,
+      "profile": "android-b",
+      "note": "前半 12 件が順不同で届く。ほとんどが gap として滞留する",
+      "envelopes": [
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000022",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-23T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 21,
+          "resultVersion": 22,
+          "payloadHash": "sha256:bf1adaccde1d63af21673bbe159ad8e5e464495ded43d10b8247f95d28a99d6d",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-23"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000010",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-11T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 9,
+          "resultVersion": 10,
+          "payloadHash": "sha256:2cf3d36eaf9fd5fe6342d9914a79aadd0596d41131e9abc2e3a49dbc2a8fba98",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-11"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000008",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-09T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 7,
+          "resultVersion": 8,
+          "payloadHash": "sha256:9523885eebbef266905037c02ee5b3a228e4e5bec4f1f925b4b40d41f5520a1a",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-09"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000003",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-04T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 2,
+          "resultVersion": 3,
+          "payloadHash": "sha256:33898cd88b7e979338459e6bad4758b59b18c802927fe65d13d36e11d8b62f98",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-04"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000001",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-02T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 0,
+          "resultVersion": 1,
+          "payloadHash": "sha256:df94681e269b3705631e2d68b2be1270e0edc45a3c259b028eef263f98762f95",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-02"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000024",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-25T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 23,
+          "resultVersion": 24,
+          "payloadHash": "sha256:b3d95bb857d2d95b5b872c648795a4f1f9277fb75cea43da2caf9c6346cc017b",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-25"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000007",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-08T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 6,
+          "resultVersion": 7,
+          "payloadHash": "sha256:36106a7ba9492bc4cd728fdd9492caf54a7b92548950b7adae1dd4ceb7e28a0f",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-08"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000013",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-14T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 12,
+          "resultVersion": 13,
+          "payloadHash": "sha256:4b914e84b198a70820a728f266837bf85ff5d349f94074d6507af141fbf62b6c",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-14"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000015",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-16T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 14,
+          "resultVersion": 15,
+          "payloadHash": "sha256:5f654b7d871fb3b5b4048e6e1afb52edd3fb7a231b5f716103de6e2de86e83f6",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-16"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000000",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-01T00:00:00Z",
+          "entityType": "book",
+          "entityId": "aaaaaaaa-1101-4000-8000-000000000001",
+          "operation": "upsert",
+          "baseVersion": 0,
+          "resultVersion": 1,
+          "payloadHash": "sha256:34908d436e1d7cfc1b3d4b9df7c2f1df85b50dbc17843d1e3be5521bf3d34662",
+          "resolvesEventIds": [],
+          "payload": {
+            "title": "ドメイン駆動設計",
+            "authors": [
+              "Eric Evans"
+            ]
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000006",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-07T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 5,
+          "resultVersion": 6,
+          "payloadHash": "sha256:894fd2c3a0521e79b4cad562bdd41fb76f75af84148c14aeb23ce4836b8a052c",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-07"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000011",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-12T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 10,
+          "resultVersion": 11,
+          "payloadHash": "sha256:e366956d546b2bf74f70c96c29332ffdb1ccf8132ed3195068d7ef73b0ce665d",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-12"
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "profile": "android-b",
+      "note": "残り 13 件。全ての穴が埋まり Loan は v24 になる",
+      "envelopes": [
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000018",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-19T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 17,
+          "resultVersion": 18,
+          "payloadHash": "sha256:cd87768dbb404a01523bca2d572be965ff978b0ac3c12a82e4ac1a25abf49532",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-19"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000020",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-21T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 19,
+          "resultVersion": 20,
+          "payloadHash": "sha256:99b3bdb085d8f703a4a66aaed6a52a823559d3ef5a93d15e1c326146deceedec",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-21"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000012",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-13T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 11,
+          "resultVersion": 12,
+          "payloadHash": "sha256:57a0d505a5a16582c67ac83ca7f04b2072d0b99fffcd01f3d9e62699c35bcecb",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-13"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000019",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-20T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 18,
+          "resultVersion": 19,
+          "payloadHash": "sha256:ad184e9fa420a75a1a581863eb7f08839d11d0b327d73e858304e44ea6f9421c",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-20"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000002",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-03T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 1,
+          "resultVersion": 2,
+          "payloadHash": "sha256:30cbcda92e6b949dd931d4a7b534805803daa2da68d0c8f224e551f8b0484d97",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-03"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000021",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-22T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 20,
+          "resultVersion": 21,
+          "payloadHash": "sha256:1fa8ed331adebb943c124262f7dcb3e763e62ddc0e4f3ae087b8da1f2cb313f0",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-22"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000009",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-10T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 8,
+          "resultVersion": 9,
+          "payloadHash": "sha256:702f8f28ef9433fc849cdcdf3312e955b7f2cbc3e2ce305fe22c34b9ed4a894f",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-10"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000014",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-15T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 13,
+          "resultVersion": 14,
+          "payloadHash": "sha256:84ce0160498d5de81567610c0b2e52346f1e1f303b7a7a4570bde8bc1cb60931",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-15"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000017",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-18T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 16,
+          "resultVersion": 17,
+          "payloadHash": "sha256:35e6607d949973ca4fafb7728ecc35e180cb09805c7a56fe64371fba7d4064b8",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-18"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000005",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-06T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 4,
+          "resultVersion": 5,
+          "payloadHash": "sha256:57c64f2a71a96fa82765f1aa9b0f1cc8631da181becd9d56d8eae4f10ba37381",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-06"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000004",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-05T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 3,
+          "resultVersion": 4,
+          "payloadHash": "sha256:8e5b3caccdb606c4043233ffa0fafc10cf3d6b811e743d97df54dd19b2a10096",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-05"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000023",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-24T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 22,
+          "resultVersion": 23,
+          "payloadHash": "sha256:c688e6e19f9e4d5c1f54f8c440c4b256568365c31326c085488dde8268fa2f85",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-24"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "eventId": "11000000-0000-4000-8000-000000000016",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-07-17T00:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-1102-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 15,
+          "resultVersion": 16,
+          "payloadHash": "sha256:fbfe86e0a1cea094cb54e68a20285705bce8bb3ad9135d1cdaf5c292fa88f0e2",
+          "resolvesEventIds": [],
+          "payload": {
+            "book_id": "aaaaaaaa-1101-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-07-01",
+            "due_on": "2026-07-17"
+          }
+        }
+      ]
+    }
+  ]
+}

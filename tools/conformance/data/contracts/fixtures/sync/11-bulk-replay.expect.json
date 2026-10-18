@@ -1,0 +1,39 @@
+{
+  "case": "11-bulk-replay",
+  "input": "11-bulk-replay.json",
+  "title": "長期不在後の一括再生",
+  "profiles": ["windows-a", "android-b"],
+  "script": [
+    {"do": "apply", "profile": "android-b", "step": 0},
+    {"do": "pull", "profile": "android-b", "now": "2026-08-05T09:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "android-b",
+      "note": "前半だけでは鎖が繋がらず、多くが gap として滞留する。競合ではない",
+      "conflicts": 0
+    },
+
+    {"do": "apply", "profile": "android-b", "step": 1},
+    {"do": "pull", "profile": "android-b", "now": "2026-08-06T09:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "android-b",
+      "note": "全ての穴が埋まる。1パスの再走査では解けない — 不動点まで繰り返す",
+      "aggregates": {
+        "loan": {
+          "aaaaaaaa-1102-4000-8000-000000000002": {
+            "version": 24,
+            "status": "borrowed",
+            "due_on": "2026-07-25"
+          }
+        },
+        "book": {
+          "aaaaaaaa-1101-4000-8000-000000000001": {"version": 1}
+        }
+      },
+      "pending_events": {},
+      "conflicts": 0,
+      "applied_events": 25
+    }
+  ]
+}

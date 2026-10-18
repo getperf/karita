@@ -1,0 +1,40 @@
+name: karita_platform_flutter
+description: >-
+  ③ プラットフォーム適配の Flutter 分。Android の Play services 認可、既定パス、
+  自己診断の環境の分。karita_platform（純 Dart）が口の定義と Windows の実装を持ち、
+  Flutter プラグインを要るものだけがここへ入る。**ネイティブ SQLite の供給はここに無い** —
+  package:sqlite3 3.x の hooks が持つ（P5a で sqlite3_flutter_libs を外した）。
+  Flutter に依存するのはこの package と harness の2つだけである。
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.27.0"
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # **URI 起動の受け口**（Windows）。spike と同じ版である。起動時の1件も同じ stream に流れる
+  # ので、「起きる前に届いた配送」を取り逃がさない。
+  app_links: ^6.4.1
+  # **Android でブラウザーを開く。** Windows は `rundll32` のままで、ここへは来ない
+  # （`karita_app` の `_openBrowser` が端末で分ける）。認可の経路も変えない。
+  url_launcher: ^6.3.0
+  google_sign_in: ^7.2.0
+  karita_contract: ^0.1.0
+  karita_platform: ^0.1.0
+  karita_sync: ^0.1.0
+  path_provider: ^2.1.5
+  # **`sqlite3_flutter_libs` は持たない**（P5a で外した。2026-09-14）。
+  #
+  # Android には dlopen できるシステム sqlite が無く、`package:sqlite3` 2.x のあいだはネイティブの
+  # 供給がここに要った。**3.x は build hooks で SQLite をアプリへ同梱するので、供給がそちらへ
+  # 移った** — 上流も "If you depend on sqlite3_flutter_libs, stop doing that" と明記しており、
+  # 最終版 0.6.0+eol はコードを全部消した版である。**戻す口を探す前に上流の指示を読むこと。**
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

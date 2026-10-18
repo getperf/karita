@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "eventId": "10000000-0000-4000-8000-000000000009",
+  "deviceId": "windows-33333333-3333-4333-8333-333333333333",
+  "createdAtUtc": "2026-08-04T09:00:00Z",
+  "entityType": "loan",
+  "entityId": "aaaaaaaa-0002-4000-8000-000000000002",
+  "operation": "upsert",
+  "baseVersion": 0,
+  "resultVersion": 1,
+  "payloadHash": "sha256:f4ba59c89b9ae14ae1038169929cdff9705f948ef7ca745e8d932201f72d2426",
+  "resolvesEventIds": [],
+  "payload": {
+    "book_id": "aaaaaaaa-0001-4000-8000-000000000001",
+    "status": "borrowed",
+    "borrowed_on": "2026-08-04"
+  },
+  "priority": 1
+}

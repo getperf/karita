@@ -1,0 +1,22 @@
+name: karita_sync
+description: >-
+  ② 同期エンジン。SQLite、outbox、適用判定、LWW、lease、同期世代、バックアップ。
+  転送と認可は port として定義するだけで実装を持たない（実装は karita_platform）。
+  純 Dart に保つ — Flutter に依存すると conformance runner と単体試験が
+  Dart VM で回らなくなる。
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+
+resolution: workspace
+
+dependencies:
+  archive: ^4.2.0
+  crypto: ^3.0.7
+  karita_contract: ^0.1.0
+  sqlite3: ^3.6.0
+
+dev_dependencies:
+  test: ^1.25.0

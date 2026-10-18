@@ -1,0 +1,49 @@
+{
+  "case": "11-bulk-replay-shuffled",
+  "input": "11-bulk-replay.json",
+  "title": "長期不在後の一括再生を、順序を壊した状態で再走行する",
+  "profiles": ["windows-a", "android-b"],
+  "script": [
+    {"do": "apply", "profile": "android-b", "step": 0},
+    {
+      "do": "pull",
+      "profile": "android-b",
+      "now": "2026-08-05T09:00:00Z",
+      "fault": "shuffle,paginate"
+    },
+    {
+      "do": "expect",
+      "profile": "android-b",
+      "note": "整列を外しても gap は競合にならない",
+      "conflicts": 0
+    },
+
+    {"do": "apply", "profile": "android-b", "step": 1},
+    {
+      "do": "pull",
+      "profile": "android-b",
+      "now": "2026-08-06T09:00:00Z",
+      "fault": "shuffle,paginate"
+    },
+    {
+      "do": "expect",
+      "profile": "android-b",
+      "note": "故障なしで流した 11-bulk-replay と同じ結果になること。違えば適用が到着順に依存している",
+      "aggregates": {
+        "loan": {
+          "aaaaaaaa-1102-4000-8000-000000000002": {
+            "version": 24,
+            "status": "borrowed",
+            "due_on": "2026-07-25"
+          }
+        },
+        "book": {
+          "aaaaaaaa-1101-4000-8000-000000000001": {"version": 1}
+        }
+      },
+      "pending_events": {},
+      "conflicts": 0,
+      "applied_events": 25
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+name: karita_book_cache
+description: Bounded session-only book and cover cache. No Flutter or persistence.
+publish_to: none
+version: 0.1.0
+environment:
+  sdk: ^3.10.0
+resolution: workspace
+dependencies:
+  karita_public_api_client: ^0.1.0

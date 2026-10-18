@@ -1,0 +1,67 @@
+{
+  "case": "08-ambiguous-upload",
+  "input": "08-ambiguous-upload.json",
+  "title": "重複リモートイベントを作らない",
+  "profiles": ["windows-a"],
+  "script": [
+    {"do": "seed", "profile": "windows-a", "step": 0, "now": "2026-08-04T09:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "windows-a",
+      "note": "まだ送っていない",
+      "outbox": {"pending": 1, "uploading": 0, "uploaded": 0},
+      "remote": {"files": 0}
+    },
+
+    {
+      "do": "push",
+      "profile": "windows-a",
+      "now": "2026-08-04T09:00:00Z",
+      "fault": "upload-timeout"
+    },
+    {
+      "do": "expect",
+      "profile": "windows-a",
+      "note": "応答は失われたが、ファイルは転送先に書かれている。行は lease を持ったまま uploading",
+      "outbox": {"pending": 0, "uploading": 1, "uploaded": 0},
+      "remote": {"files": 1, "events": 1}
+    },
+
+    {"do": "push", "profile": "windows-a", "now": "2026-08-04T09:05:00Z"},
+    {
+      "do": "expect",
+      "profile": "windows-a",
+      "note": "lease が生きている間は誰も触らない。ここで送ると重複を作る",
+      "outbox": {"pending": 0, "uploading": 1, "uploaded": 0},
+      "remote": {"files": 1, "events": 1}
+    },
+
+    {"do": "push", "profile": "windows-a", "now": "2026-08-04T09:30:00Z"},
+    {
+      "do": "expect",
+      "profile": "windows-a",
+      "note": "lease 失効後の再取得。payloadHash の一致で既送信と分かるので put を呼ばない",
+      "outbox": {"pending": 0, "uploading": 0, "uploaded": 1},
+      "remote": {"files": 1, "events": 1}
+    },
+
+    {"do": "pull", "profile": "windows-a", "now": "2026-08-04T10:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "windows-a",
+      "note": "自分のイベントを読み戻しても再適用しない。転送先も増えない",
+      "aggregates": {
+        "book": {
+          "aaaaaaaa-0801-4000-8000-000000000001": {
+            "version": 1,
+            "title": "退屈なことはPythonにやらせよう"
+          }
+        }
+      },
+      "applied_events": 1,
+      "conflicts": 0,
+      "pending_events": {},
+      "remote": {"files": 1, "events": 1}
+    }
+  ]
+}

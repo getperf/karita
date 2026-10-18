@@ -1,0 +1,42 @@
+{
+  "case": "13-deterministic-lww",
+  "input": "03-concurrent-loan.json",
+  "title": "--take auto の決定的 LWW",
+  "profiles": ["windows-a", "android-b"],
+  "script": [
+    {"do": "seed", "profile": "windows-a", "step": 0, "now": "2026-08-04T09:00:00Z"},
+    {"do": "sync", "profile": "windows-a", "now": "2026-08-04T09:00:00Z"},
+    {"do": "sync", "profile": "android-b", "now": "2026-08-04T09:00:00Z"},
+
+    {"do": "seed", "profile": "windows-a", "step": 1, "now": "2026-08-05T09:00:00Z"},
+    {"do": "seed", "profile": "android-b", "step": 2, "now": "2026-08-05T09:00:00Z"},
+    {"do": "sync", "profile": "windows-a", "now": "2026-08-05T09:00:00Z"},
+    {"do": "sync", "profile": "android-b", "now": "2026-08-05T09:00:00Z"},
+    {"do": "expect", "profile": "android-b", "note": "ケース03 と同じ競合状態を作る", "conflicts": 1},
+
+    {
+      "do": "resolve",
+      "profile": "android-b",
+      "take": "auto",
+      "now": "2026-08-06T09:00:00Z",
+      "note": "決定キー (occurred_at_utc, deviceId, payloadHash) の大きい側を採る。両更新は同時刻なので deviceId で決まり、'android-*' < 'windows-*' より remote（windows の返却）が勝つ。第3キーの payloadHash は封筒にもローカル集約にも同値であり、両端末が同じ勝者を選ぶ"
+    },
+    {
+      "do": "expect",
+      "profile": "android-b",
+      "note": "auto は remote を採り、windows の返却 v3 へ収束する。ケース04 の手動 remote と同じ結果を人手なしで得る",
+      "aggregates": {
+        "loan": {
+          "aaaaaaaa-0002-4000-8000-000000000002": {
+            "version": 3,
+            "status": "returned",
+            "due_on": "2026-08-18",
+            "returned_on": "2026-08-15"
+          }
+        }
+      },
+      "conflicts": 0,
+      "pending_events": {}
+    }
+  ]
+}

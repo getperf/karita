@@ -1,0 +1,46 @@
+name: karita
+description: 図書館で借りる本と自分の本をまとめて管理し、Google Driveで端末間同期できるアプリ。
+publish_to: none
+version: 1.0.2
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.27.0"
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # **合成は作らない。使うだけである。** `boot()` を1回呼ぶ以外のことをここでしない。
+  # → 非公開資料:production-app-composition.md
+  karita_app: ^0.1.0
+  # 画面・状態・文言。**器は文言を持たない。**
+  karita_ui: ^0.1.0
+  flutter_riverpod: ^3.4.3
+
+dev_dependencies:
+  msix: 3.18.0
+  # image 4.11+ (msix) uses ZLibDecoder.decodeLazy.
+  archive: ^4.5.2
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  assets:
+    - LICENSE
+
+msix_config:
+  display_name: karita
+  identity_name: Getperf.karita
+  publisher: CN=23AC604C-6803-421F-8152-B36628D2ED05
+  publisher_display_name: Getperf
+  msix_version: 1.0.2.0
+  store: true
+  protocol_activation: karita
+  capabilities: internetClient
+  architecture: x64
+  languages: ja-jp
+  logo_path: ../../assets/branding/karita-icon/v1/icon-1024.png
+  trim_logo: false

@@ -1,0 +1,39 @@
+{
+  "case": "02-gap-fill",
+  "input": "02-gap-fill.json",
+  "title": "gap 到着 → 後続で穴埋め",
+  "profiles": ["windows-a", "android-b"],
+  "script": [
+    {"do": "apply", "profile": "android-b", "step": 0},
+    {"do": "pull", "profile": "android-b", "now": "2026-08-05T09:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "android-b",
+      "note": "baseVersion > 現在版 は gap。競合にしない。自動適用もしない",
+      "aggregates": {"loan": {}},
+      "conflicts": 0,
+      "pending_events": {"gap": 1},
+      "applied_events": 0
+    },
+
+    {"do": "apply", "profile": "android-b", "step": 1},
+    {"do": "pull", "profile": "android-b", "now": "2026-08-06T09:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "android-b",
+      "note": "先行イベントの到着で gap が解け、v1 → v2 の順に適用される",
+      "aggregates": {
+        "loan": {
+          "aaaaaaaa-0202-4000-8000-000000000002": {
+            "version": 2,
+            "status": "returned",
+            "returned_on": "2026-08-05"
+          }
+        }
+      },
+      "conflicts": 0,
+      "pending_events": {},
+      "applied_events": 2
+    }
+  ]
+}

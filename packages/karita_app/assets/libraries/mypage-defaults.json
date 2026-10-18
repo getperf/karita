@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "checked_on": "2026-08-15",
+  "source": "karita-ui-probe/docs/library-site-url.md §6（実サイトから採取し、GET 直リンクでログイン画面へ着地することを確認した）",
+  "rows": [
+    {
+      "systemid": "Tokyo_Edogawa",
+      "url": "https://www.library.city.edogawa.tokyo.jp/toshow/asp/WwPortLogin.aspx"
+    },
+    {
+      "systemid": "Tokyo_Katsushika",
+      "url": "https://www.lib.city.katsushika.lg.jp/idcheck"
+    },
+    {
+      "systemid": "Tokyo_Koto",
+      "url": "https://www.koto-lib.tokyo.jp/opw/OPW/OPWLOGINTIME.CSP?DB=LIB"
+    },
+    {
+      "systemid": "Tokyo_Minato",
+      "url": "https://www.lib.city.minato.tokyo.jp/licsxp-opac/WOpacInitLoginActiontemp.do?smtFlg=0"
+    },
+    {
+      "systemid": "Tokyo_Sumida",
+      "url": "https://www.library.sumida.tokyo.jp/idcheck"
+    }
+  ]
+}

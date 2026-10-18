@@ -1,0 +1,22 @@
+name: karita_public_api_client
+description: >-
+  OpenBD とカーリルへ端末から直接つなぐ adapter と応答の型。**純 Dart であり、Flutter にも
+  業務にも同期にも依存しない。** キーの保管も、キャッシュも、要求の共有も持たない — それらは
+  合成層（karita_app）の仕事である。ここに在るのは「1回の取得」と「その失敗の区別」だけで、
+  固定応答に対する試験を無印の dart test で回せることを境界の条件にしている。
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+
+resolution: workspace
+
+dependencies:
+  http: ^1.6.0
+  # **sink は持たない。** `Logger` を作るだけで、どこへ書くかは合成層（karita_app）が決める
+  # （非公開資料:logging-and-diagnostics.md 決定 A）。
+  logging: ^1.2.0
+
+dev_dependencies:
+  test: ^1.25.0

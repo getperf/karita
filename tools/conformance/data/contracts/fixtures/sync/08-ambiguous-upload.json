@@ -1,0 +1,29 @@
+{
+  "case": "08-ambiguous-upload",
+  "title": "曖昧なアップロード（応答タイムアウト後の再送）",
+  "description": "アップロードは届いているが応答が失われた状態を作る。失敗ではなく「不明」であり、未送信と決めつけて送り直すと重複リモートイベントを作る。lease を保持したまま uploading に残し、失効した後の再取得では、応答で file id を得られていなかったので転送先を検索し、payloadHash が一致するときだけ既送信として扱う。1件だけで足りるケースなので Book を1つ登録する。",
+  "steps": [
+    {
+      "step": 0,
+      "profile": "windows-a",
+      "note": "送信対象を1件作る。この outbox 行がケースの主役である",
+      "events": [
+        {
+          "eventId": "10800000-0000-4000-8000-000000000001",
+          "entityType": "book",
+          "entityId": "aaaaaaaa-0801-4000-8000-000000000001",
+          "operation": "upsert",
+          "baseVersion": 0,
+          "resultVersion": 1,
+          "payload": {
+            "title": "退屈なことはPythonにやらせよう",
+            "authors": [
+              "Al Sweigart"
+            ],
+            "isbn13": "9784873117782"
+          }
+        }
+      ]
+    }
+  ]
+}

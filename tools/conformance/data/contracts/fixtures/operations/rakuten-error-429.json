@@ -1,0 +1,4 @@
+{
+  "http": {"status": 429, "headers": {"content-type": "application/json"}},
+  "body": {"error": "Too Many Requests"}
+}

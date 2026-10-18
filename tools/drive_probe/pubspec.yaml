@@ -1,0 +1,19 @@
+name: drive_probe
+description: >-
+  実 Drive の手動確認に要る最小の道具。初回の同意を通す login、保存されたものの
+  有無を見る status、接続先を見る whoami、検証用アカウントの appDataFolder を空にする
+  purge（tools/first-run-env.ps1 から使う）、認可喪失の枝を作る damage / restore を持つ。**製品ではない** — karita-core は CLI を持たず、
+  画面に出すのは harness と本番 GUI の仕事である。ここにあるのは、手動が残る
+  ただ一点（ブラウザでの同意）を通すための入口である。
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+
+resolution: workspace
+
+dependencies:
+  karita_contract: ^0.1.0
+  karita_platform: ^0.1.0
+

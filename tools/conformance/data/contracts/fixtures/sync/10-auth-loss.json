@@ -1,0 +1,49 @@
+{
+  "case": "10-auth-loss",
+  "title": "認可を失った状態での outbox drain",
+  "description": "アクセストークンを得られない状態で送信を試みる。outbox を捨てず blocked_auth にし、再認可に成功するまで業務データはローカルSQLiteに残る。blocked_auth を付けるのは401を受けた行だけであり、その時点で送信を止める。残りは pending のままにする — 「トークンが無いのだから全部落ちるはずだ」と決めつけて全行に付けると、実際には送れたかもしれない行の状態を推測で書いたことになる。2件を積んで、止まるのが1件目だけであることを見る。",
+  "steps": [
+    {
+      "step": 0,
+      "profile": "windows-a",
+      "note": "1件目。これが401を受ける",
+      "events": [
+        {
+          "eventId": "11000000-0000-4000-8000-000000000001",
+          "entityType": "book",
+          "entityId": "aaaaaaaa-1001-4000-8000-000000000001",
+          "operation": "upsert",
+          "baseVersion": 0,
+          "resultVersion": 1,
+          "payload": {
+            "title": "Clean Architecture",
+            "authors": [
+              "Robert C. Martin"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "profile": "windows-a",
+      "note": "2件目。1件目で止まるので、これは pending のまま残る",
+      "events": [
+        {
+          "eventId": "11000000-0000-4000-8000-000000000002",
+          "entityType": "book",
+          "entityId": "aaaaaaaa-1002-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 0,
+          "resultVersion": 1,
+          "payload": {
+            "title": "ドメイン駆動設計",
+            "authors": [
+              "Eric Evans"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

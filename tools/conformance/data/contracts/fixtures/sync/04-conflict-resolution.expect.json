@@ -1,0 +1,66 @@
+{
+  "case": "04-conflict-resolution",
+  "input": "03-concurrent-loan.json",
+  "title": "競合解決イベントの往復",
+  "profiles": ["windows-a", "android-b"],
+  "script": [
+    {"do": "seed", "profile": "windows-a", "step": 0, "now": "2026-08-04T09:00:00Z"},
+    {"do": "sync", "profile": "windows-a", "now": "2026-08-04T09:00:00Z"},
+    {"do": "sync", "profile": "android-b", "now": "2026-08-04T09:00:00Z"},
+
+    {"do": "seed", "profile": "windows-a", "step": 1, "now": "2026-08-05T09:00:00Z"},
+    {"do": "seed", "profile": "android-b", "step": 2, "now": "2026-08-05T09:00:00Z"},
+    {"do": "sync", "profile": "windows-a", "now": "2026-08-05T09:00:00Z"},
+    {"do": "sync", "profile": "android-b", "now": "2026-08-05T09:00:00Z"},
+    {"do": "expect", "profile": "android-b", "conflicts": 1},
+
+    {
+      "do": "resolve",
+      "profile": "android-b",
+      "take": "remote",
+      "now": "2026-08-06T09:00:00Z",
+      "note": "決着させた双方の eventId を resolvesEventIds に載せた新しいイベントを出す"
+    },
+    {"do": "push", "profile": "android-b", "now": "2026-08-06T09:00:00Z"},
+    {"do": "sync", "profile": "windows-a", "now": "2026-08-07T09:00:00Z"},
+
+    {
+      "do": "expect",
+      "profile": "windows-a",
+      "note": "判定表3行目により版判定を迂回して適用し、自端末の conflict を閉じる",
+      "aggregates": {
+        "loan": {
+          "aaaaaaaa-0002-4000-8000-000000000002": {
+            "version": 3,
+            "status": "returned",
+            "due_on": "2026-08-18",
+            "returned_on": "2026-08-15"
+          }
+        }
+      },
+      "conflicts": 0,
+      "pending_events": {}
+    },
+    {
+      "do": "expect",
+      "profile": "android-b",
+      "note": "両端末が同じ内容の v3 に収束する",
+      "aggregates": {
+        "loan": {
+          "aaaaaaaa-0002-4000-8000-000000000002": {"version": 3, "status": "returned"}
+        }
+      },
+      "conflicts": 0
+    },
+
+    {"do": "sync", "profile": "windows-a", "now": "2026-08-08T09:00:00Z"},
+    {"do": "sync", "profile": "android-b", "now": "2026-08-08T09:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "windows-a",
+      "note": "もう一往復しても再競合しない。往復が終わる",
+      "conflicts": 0,
+      "outbox": {"pending": 0}
+    }
+  ]
+}

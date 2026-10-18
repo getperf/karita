@@ -1,0 +1,46 @@
+{
+  "case": "01-duplicate-event",
+  "input": "01-duplicate-event.json",
+  "title": "同一イベントの再取込",
+  "profiles": ["windows-a", "android-b"],
+  "script": [
+    {"do": "seed", "profile": "windows-a", "step": 0, "now": "2026-08-04T09:00:00Z"},
+    {"do": "push", "profile": "windows-a", "now": "2026-08-04T09:00:00Z"},
+
+    {"do": "pull", "profile": "android-b", "now": "2026-08-05T09:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "android-b",
+      "aggregates": {
+        "book": {
+          "aaaaaaaa-0101-4000-8000-000000000001": {"version": 1, "title": "リファクタリング"}
+        }
+      },
+      "applied_events": 1,
+      "conflicts": 0,
+      "pending_events": {}
+    },
+
+    {"do": "pull", "profile": "android-b", "now": "2026-08-06T09:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "android-b",
+      "note": "applied_events の一意制約により業務データは一度だけ変わる",
+      "aggregates": {
+        "book": {"aaaaaaaa-0101-4000-8000-000000000001": {"version": 1}}
+      },
+      "applied_events": 1,
+      "conflicts": 0
+    },
+
+    {
+      "do": "expect",
+      "profile": "windows-a",
+      "note": "発行側も自分のイベントを引き戻して再適用しない",
+      "aggregates": {
+        "book": {"aaaaaaaa-0101-4000-8000-000000000001": {"version": 1}}
+      },
+      "applied_events": 1
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "case": "09-expired-lease",
+  "input": "09-expired-lease.json",
+  "title": "失効した uploading lease は pending へ回復する",
+  "profiles": ["windows-a"],
+  "script": [
+    {"do": "seed", "profile": "windows-a", "step": 0, "now": "2026-08-04T09:00:00Z"},
+    {
+      "do": "push",
+      "profile": "windows-a",
+      "now": "2026-08-04T09:00:00Z",
+      "fault": "upload-timeout"
+    },
+    {
+      "do": "expect",
+      "profile": "windows-a",
+      "note": "送信中にプロセスが落ちたのと同じ状態。lease を持ったまま残る",
+      "outbox": {"pending": 0, "uploading": 1, "uploaded": 0}
+    },
+
+    {"do": "unlock", "profile": "windows-a", "now": "2026-08-04T09:05:00Z"},
+    {
+      "do": "expect",
+      "profile": "windows-a",
+      "note": "まだ失効していないので何も外さない。生きている lease を剥がすと lease は何も守らない",
+      "outbox": {"pending": 0, "uploading": 1, "uploaded": 0}
+    },
+
+    {"do": "unlock", "profile": "windows-a", "now": "2026-08-04T09:30:00Z"},
+    {
+      "do": "expect",
+      "profile": "windows-a",
+      "note": "失効したので pending へ回復した",
+      "outbox": {"pending": 1, "uploading": 0, "uploaded": 0}
+    },
+
+    {"do": "push", "profile": "windows-a", "now": "2026-08-04T10:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "windows-a",
+      "note": "回復した行は再び送信の対象になる。既送信なので重複は作らない",
+      "outbox": {"pending": 0, "uploading": 0, "uploaded": 1},
+      "remote": {"files": 1, "events": 1}
+    }
+  ]
+}

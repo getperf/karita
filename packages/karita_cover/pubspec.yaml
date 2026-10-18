@@ -1,0 +1,19 @@
+name: karita_cover
+description: >-
+  書影が無いときに出す代替ラベル（DiceBear Initials）の生成と、実画像・Initials・本アイコンの
+  選択規則。**純 Dart であり、描画を持たない** — 出すのは SVG の文字列までで、
+  flutter_svg は karita_ui 側にある。通信もしないので karita_public_api_client とも別である。
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+
+resolution: workspace
+
+dependencies:
+  dicebear_core: 10.7.0
+  dicebear_styles: 10.6.0
+
+dev_dependencies:
+  test: ^1.25.0

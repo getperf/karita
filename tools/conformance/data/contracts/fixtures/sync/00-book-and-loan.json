@@ -1,0 +1,73 @@
+{
+  "case": "00-book-and-loan",
+  "title": "Book と Loan を1件ずつ作る最小ケース",
+  "description": "受入マトリクスのケースではない。fixture seed と適用の原子性を確かめるための最小入力である。1入力イベント = 1トランザクション = 1 SyncEvent を、ステップの粒度で示す。",
+  "steps": [
+    {
+      "step": 0,
+      "profile": "windows-a",
+      "note": "Book を登録する",
+      "events": [
+        {
+          "eventId": "20000000-0000-4000-8000-000000000001",
+          "entityType": "book",
+          "entityId": "bbbbbbbb-0001-4000-8000-000000000001",
+          "operation": "upsert",
+          "baseVersion": 0,
+          "resultVersion": 1,
+          "payload": {
+            "title": "リーダブルコード",
+            "authors": ["Dustin Boswell", "Trevor Foucher"],
+            "isbn13": "9784873115658",
+            "publisher": "オライリー・ジャパン",
+            "published_on": "2012-06-23"
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "profile": "windows-a",
+      "note": "予約を記録する",
+      "events": [
+        {
+          "eventId": "20000000-0000-4000-8000-000000000002",
+          "entityType": "loan",
+          "entityId": "bbbbbbbb-0002-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 0,
+          "resultVersion": 1,
+          "payload": {
+            "book_id": "bbbbbbbb-0001-4000-8000-000000000001",
+            "system_id": "bbbbbbbb-0003-4000-8000-000000000003",
+            "status": "reserved",
+            "reserved_on": "2026-08-04"
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "profile": "windows-a",
+      "note": "取置開始を確認する（v1 → v2）",
+      "events": [
+        {
+          "eventId": "20000000-0000-4000-8000-000000000003",
+          "entityType": "loan",
+          "entityId": "bbbbbbbb-0002-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 1,
+          "resultVersion": 2,
+          "payload": {
+            "book_id": "bbbbbbbb-0001-4000-8000-000000000001",
+            "system_id": "bbbbbbbb-0003-4000-8000-000000000003",
+            "status": "ready_for_pickup",
+            "reserved_on": "2026-08-04",
+            "pickup_available_on": "2026-08-06",
+            "pickup_due_on": "2026-08-13"
+          }
+        }
+      ]
+    }
+  ]
+}

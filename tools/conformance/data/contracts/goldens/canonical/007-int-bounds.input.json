@@ -1,0 +1,9 @@
+{
+  "zero": 0,
+  "minus_one": -1,
+  "max_safe": 9007199254740991,
+  "min_safe": -9007199254740991,
+  "yes": true,
+  "no": false,
+  "nil": null
+}

@@ -1,0 +1,59 @@
+{
+  "case": "06-unsupported-schema",
+  "title": "未対応 schemaVersion",
+  "description": "新しい版のアプリが作った封筒が届く。schemaVersion は封筒全体の検証より先に読み、未対応なら pending_events(reason='schema') に保持する。スキーマ検証の失敗として扱わない — 未対応の版では封筒の形自体が変わりうるためである。破棄すると、そのイベントは二度と届かず恒久的なデータ欠落になる。このケースは events では書けない。schemaVersion は派生項目であり実装が入れるため、fixture に書くと拒否される。",
+  "steps": [
+    {
+      "step": 0,
+      "profile": "android-b",
+      "note": "この実装が知らない schemaVersion 99。未知のキーを持つ封筒でもよい",
+      "envelopes": [
+        {
+          "schemaVersion": 99,
+          "eventId": "10600000-0000-4000-8000-000000000001",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-08-04T09:00:00Z",
+          "entityType": "loan",
+          "entityId": "aaaaaaaa-0602-4000-8000-000000000002",
+          "operation": "upsert",
+          "baseVersion": 0,
+          "resultVersion": 1,
+          "payloadHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+          "resolvesEventIds": [],
+          "renewalPolicy": "この版で増えた封筒の項目。現行の実装は読めない",
+          "payload": {
+            "book_id": "aaaaaaaa-0601-4000-8000-000000000001",
+            "status": "borrowed",
+            "borrowed_on": "2026-08-04"
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "profile": "android-b",
+      "note": "対応版の封筒。未対応版が保留されていても、他のイベントの取り込みは止まらない",
+      "envelopes": [
+        {
+          "schemaVersion": 1,
+          "eventId": "10600000-0000-4000-8000-000000000002",
+          "deviceId": "windows-00000000-0000-4000-8000-0000000000aa",
+          "createdAtUtc": "2026-08-04T10:00:00Z",
+          "entityType": "book",
+          "entityId": "aaaaaaaa-0601-4000-8000-000000000001",
+          "operation": "upsert",
+          "baseVersion": 0,
+          "resultVersion": 1,
+          "payloadHash": "sha256:ff106e221410ebf34d024042f9382a808edd9624712731a499457b833bfef6bb",
+          "resolvesEventIds": [],
+          "payload": {
+            "title": "テスト駆動開発",
+            "authors": [
+              "Kent Beck"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

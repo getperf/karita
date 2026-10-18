@@ -1,0 +1,64 @@
+{
+  "case": "14-auto-resolve-converge",
+  "input": "03-concurrent-loan.json",
+  "title": "自動解決の二端末収束（ケース04 の自動版）",
+  "profiles": ["windows-a", "android-b"],
+  "script": [
+    {"do": "seed", "profile": "windows-a", "step": 0, "now": "2026-08-04T09:00:00Z"},
+    {"do": "sync", "profile": "windows-a", "now": "2026-08-04T09:00:00Z"},
+    {"do": "sync", "profile": "android-b", "now": "2026-08-04T09:00:00Z"},
+
+    {
+      "do": "config",
+      "profile": "android-b",
+      "key": "conflict.auto_resolve",
+      "value": "lww",
+      "note": "android-b だけ自動解決を有効にする。既定は off で、有効化しても新しい競合は立たない"
+    },
+
+    {"do": "seed", "profile": "windows-a", "step": 1, "now": "2026-08-05T09:00:00Z"},
+    {"do": "seed", "profile": "android-b", "step": 2, "now": "2026-08-05T09:00:00Z"},
+    {"do": "sync", "profile": "windows-a", "now": "2026-08-05T09:00:00Z"},
+    {"do": "sync", "profile": "android-b", "now": "2026-08-05T09:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "android-b",
+      "note": "sync run の適用フェーズ末尾で LWW が競合を解く。手動 resolve を挟まずに remote（windows の返却）へ収束し、解決イベントも同じ run の末尾で送られるので outbox に pending を残さない",
+      "aggregates": {
+        "loan": {
+          "aaaaaaaa-0002-4000-8000-000000000002": {
+            "version": 3,
+            "status": "returned",
+            "due_on": "2026-08-18",
+            "returned_on": "2026-08-15"
+          }
+        }
+      },
+      "conflicts": 0,
+      "outbox": {"pending": 0}
+    },
+
+    {"do": "sync", "profile": "windows-a", "now": "2026-08-06T09:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "windows-a",
+      "note": "解決イベントを受けて windows も同じ v3 returned へ収束する。判定表3行目で版判定を迂回して適用する",
+      "aggregates": {
+        "loan": {
+          "aaaaaaaa-0002-4000-8000-000000000002": {"version": 3, "status": "returned", "due_on": "2026-08-18"}
+        }
+      },
+      "conflicts": 0
+    },
+
+    {"do": "sync", "profile": "android-b", "now": "2026-08-07T09:00:00Z"},
+    {"do": "sync", "profile": "windows-a", "now": "2026-08-07T09:00:00Z"},
+    {
+      "do": "expect",
+      "profile": "android-b",
+      "note": "もう一往復しても再競合せず、往復が終わる（自動解決が二次競合を作らない）",
+      "conflicts": 0,
+      "outbox": {"pending": 0}
+    }
+  ]
+}

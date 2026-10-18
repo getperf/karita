@@ -1,0 +1,24 @@
+name: conformance
+description: >-
+  D1〜D3 の照合オラクル。karita_contract と karita_sync が book-sync-model の正本と
+  言語をまたいで一致することを測り続ける。**第二の製品実装ではない** — D3 は
+  karita_sync の driver を駆動するだけで、適用の実装をここに持たない。持つのは
+  dir 転送（試験側の TransportPort 実装）と、data/ の読み口だけである。
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+
+resolution: workspace
+
+dependencies:
+  karita_contract: ^0.1.0
+  karita_sync: ^0.1.0
+  karita_platform: ^0.1.0
+  karita_domain: ^0.1.0
+  crypto: ^3.0.6
+
+dev_dependencies:
+  test: ^1.25.0
+  archive: ^4.2.0

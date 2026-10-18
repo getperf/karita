@@ -1,0 +1,27 @@
+name: karita_core_workspace
+description: karita application, shared packages, browser extension and development tools.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+
+dev_dependencies:
+  lints: ^5.0.0
+
+workspace:
+  - packages/karita_contract
+  - packages/karita_sync
+  - packages/karita_domain
+  - packages/karita_handoff
+  - packages/karita_cover
+  - packages/karita_book_cache
+  - packages/karita_public_api_client
+  - packages/karita_platform
+  - packages/karita_platform_flutter
+  - packages/karita_app
+  - packages/karita_ui
+  - apps/karita
+  - example/harness
+  - tools/conformance
+  - tools/drive_probe
