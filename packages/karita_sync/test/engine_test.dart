@@ -105,6 +105,37 @@ void main() {
     expect(states, isNotEmpty);
   });
 
+  test('再サインイン後の再開で blocked_auth が送信待ちへ戻り、再ログインの状態を抜ける', () async {
+    final e = engine();
+    final db = session.db;
+    final event = e.codec.build(
+      eventId: '10900000-0000-4000-8000-000000000001',
+      deviceId: 'windows-00000000-0000-4000-8000-000000000001',
+      createdAtUtc: '2026-08-05T09:00:00Z',
+      entityType: 'book',
+      entityId: 'aaaaaaaa-9001-4000-8000-000000000001',
+      operation: 'upsert',
+      baseVersion: 0,
+      resultVersion: 1,
+      payload: {'title': 'v1'},
+    );
+    transaction(
+        db,
+        () => appendOutbox(db, event,
+            state: outboxBlockedAuth,
+            updatedAtUtc: '2026-08-05T09:00:00Z',
+            app: appBsync));
+    expect(e.status(now: '2026-08-05T09:00:00Z').state,
+        equals(SyncState.signInRequired));
+
+    expect(await e.retryBlockedAuth(now: '2026-08-05T09:01:00Z'), equals(1));
+    expect(countOutbox(db, outboxBlockedAuth), equals(0));
+    expect(countOutbox(db, outboxPending), equals(1));
+    expect(e.status(now: '2026-08-05T09:01:00Z').state, equals(SyncState.unsent));
+    // 止まった行が無ければ何もしない。
+    expect(await e.retryBlockedAuth(now: '2026-08-05T09:02:00Z'), equals(0));
+  });
+
   test('製品の既定は lww に固定である', () {
     // 引数を省いた組み立てが製品の形である。
     final e = SyncEngine(

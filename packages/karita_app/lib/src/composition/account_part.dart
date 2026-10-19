@@ -50,9 +50,10 @@ extension CompositionAccount on Composition {
 
   /// ［サインイン］。**走ったときだけ `true` を返す**（デモでは走らない）。
   ///
-  /// **成功後に2つ打つ。** 画面への通知（[_notifyStatus]）と、起動時と同じ同期の契機
-  /// （[RefreshTrigger.startup]）である。繋がないと、サインインしたのに画面が古いままで、
-  /// 次の周期が来るまで同期も始まらない。
+  /// **成功後に3つ打つ。** 止まった outbox の再開（[SyncEngine.retryBlockedAuth]）、
+  /// 画面への通知（[_notifyStatus]）、起動時と同じ同期の契機（[RefreshTrigger.startup]）
+  /// である。再開しないと `blocked_auth` が残り、サインインしても「同期が停止しています」から
+  /// 抜けない。通知と契機を繋がないと、画面が古いままで、次の周期が来るまで同期も始まらない。
   Future<bool> signIn() async {
     _requireOpen();
     final Attempt<Object?> attempt;
@@ -66,6 +67,8 @@ extension CompositionAccount on Composition {
     }
     if (attempt.wasSkipped) return false;
     _log.info('auth.signed_in', {'kind': auth.kind});
+    final resumed = await engine.retryBlockedAuth(now: nowUtc());
+    if (resumed > 0) _log.info('sync.outbox.resumed', {'count': resumed});
     _notifyStatus();
     await refresh?.trigger(RefreshTrigger.startup);
     return true;

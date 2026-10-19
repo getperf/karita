@@ -403,6 +403,26 @@ class SyncEngine {
   /// [DoctorReport.merge] でまとめる。
   DoctorReport doctor() => ledgerDoctor(db, applier.mapping);
 
+  /// 認可を失って止まった outbox（`blocked_auth`）を、すべて送信待ちへ戻す。戻した件数を返す。
+  ///
+  /// **再サインインの直後に呼ぶ。** `claimOutbox` は `blocked_auth` を拾わないので、戻さないと
+  /// 認可を取り戻しても行は止まったままで、状態は [SyncState.signInRequired] から抜けない。
+  /// 自動では戻さない（`admin outbox retry` の注記）— 戻す契機は利用者のサインインである。
+  ///
+  /// **走行中の run の後に並ぶ。** 古い認可で走っている run が後から `blocked_auth` を
+  /// 書き戻すと、戻した行がまた止まる。
+  Future<int> retryBlockedAuth({required String now}) => _exclusive(() async {
+        final rows = listOutbox(db, state: outboxBlockedAuth);
+        if (rows.isEmpty) return 0;
+        transaction(db, () {
+          for (final row in rows) {
+            retryOutbox(db, row['event_id'] as String, now: now);
+          }
+        });
+        onStatusChanged?.call();
+        return rows.length;
+      });
+
   // --- 初回起動 --------------------------------------------------------------
 
   /// この端末が使い始めているか。**初回起動の2択を出すかどうかの唯一の判定である。**
