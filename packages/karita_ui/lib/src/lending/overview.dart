@@ -53,12 +53,9 @@ class LendingOverview extends ConsumerWidget {
       key: const PageStorageKey('lending.overview'),
       padding: const EdgeInsets.all(14),
       children: [
-        Row(
-          children: [
-            Expanded(child: Text('貸出し', style: theme.textTheme.titleLarge)),
-            const LendingRefreshButton(),
-          ],
-        ),
+        // **`↻ 更新` を置かない**（2026-10-20）。同期が台帳を変えたら読み直す
+        // （`state.dart` 冒頭）。
+        Text('貸出し', style: theme.textTheme.titleLarge),
         const SizedBox(height: 8),
         const _Filters(),
         if (state.unread && state.loading)

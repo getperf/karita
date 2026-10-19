@@ -1,17 +1,28 @@
 /// 貸出し（棚卸）画面の状態。**一覧を自分で抱える、この段だけの形である。**
 ///
-/// ## なぜ [ledgerRevisionProvider] を見ないか
+/// ## [ledgerRevisionProvider] を見るのは初期画面だけ
 ///
-/// 図書館管理は台帳が変わるたびに読み直す（`libraries/state.dart`）。**貸出しは逆にする**
+/// 図書館管理は台帳が変わるたびに読み直す（`libraries/state.dart`）。**詳細は逆にする**
 /// （2026-09-19 決定。`非公開資料:p5-production-app.md` 段階3）。棚卸は館サイトを片手に
 /// 手元を合わせていく作業で、1件直すたびに一覧が組み直されると、**どこまで直したかを
 /// 見失う。** 同期が他端末の変更を持ってきたときも同じである。
 ///
-/// **読み直す契機は `↻ 更新` とタブ入場の2つだけ**とし、書込みが通ったら**該当行だけを
-/// 差し替える。** 枠（受取・返却／予約中）と並びは [LendingState.order] と
-/// [LendingState.section] が握っていて、更新でしか作り直さない。
+/// **初期画面は台帳の変更で読み直す**（2026-10-20）。初期画面は読み取り専用のサマリで、
+/// 位置を見失う作業が無い。手動の `↻ 更新` はこの端末の表示を揃えるだけで他の端末を
+/// 揃えないので、初期画面からは外した。周期は同期（`RefreshLoop`）が刻み、画面は
+/// 「同期が台帳を変えた」通知だけを見る — 画面側にタイマーを持たない。
 ///
-/// **終端にした行を消す処理は書かない。** 合成層の読み口が返さなくなるので、次の更新で
+/// 読み直す契機は次の4つである。
+///
+/// - タブ入場
+/// - 詳細から初期画面へ戻ったとき — 棚卸の結果を初期画面へ持ち帰る区切りである
+/// - 初期画面を見ている間の台帳の変更（[_followLedger]）
+/// - 詳細の `↻ 更新`
+///
+/// 書込みが通ったら**該当行だけを差し替える。** 枠（受取・返却／予約中）と並びは
+/// [LendingState.order] と [LendingState.section] が握っていて、読み直しでしか作り直さない。
+///
+/// **終端にした行を消す処理は書かない。** 合成層の読み口が返さなくなるので、次の読み直しで
 /// 自然に落ちる（`lending.md` §3「終端状態になった行は `↻ 更新` まで現在位置に残し、
 /// 更新時に WIP 一覧から外す」）。
 ///
@@ -289,7 +300,7 @@ class LendingRouteState {
 /// [order] と [section] が「いつ組み直すか」を握り、[rows] が「いま何が書いてあるか」を
 /// 持つ。書込みは [rows] の1件を差し替えるだけなので、**行は動かない。**
 class LendingState {
-  /// 表示順の `loanId`。**`↻ 更新` とタブ入場でだけ作り直す。**
+  /// 表示順の `loanId`。**読み直し（ライブラリ冒頭の4つの契機）でだけ作り直す。**
   final List<String> order;
 
   /// `loanId` → いまの行。**書込みのたびに差し替わる。**
@@ -552,6 +563,15 @@ class Lending extends _$Lending {
     ref.listen(currentTabProvider, (previous, next) {
       if (next == ShellTab.lending && previous != ShellTab.lending) refresh();
     });
+    // **詳細から戻ったら読み直す。** 詳細で直した結果（外れた行・並び）を初期画面へ持ち帰る。
+    ref.listen(lendingRouteProvider, (previous, next) {
+      if (previous?.screen == LendingScreen.area &&
+          next.screen == LendingScreen.overview &&
+          ref.read(currentTabProvider) == ShellTab.lending) {
+        refresh();
+      }
+    });
+    ref.listen(ledgerRevisionProvider, (_, _) => _followLedger());
     // **初回は読まない。** 起動直後は先頭（予約）に居り、外殻がここも同時に build する。
     // 見ていない画面のために台帳を読むと、起動が Loan 全件ぶん遅くなる。
     scheduleMicrotask(() {
@@ -562,11 +582,23 @@ class Lending extends _$Lending {
     return const LendingState();
   }
 
-  /// 読み直して枠と並びを作り直す。**`↻ 更新` とタブ入場だけがここへ来る。**
+  /// 台帳が変わった。**初期画面を見ているときだけ読み直す**（2026-10-20）。
+  ///
+  /// 通知はこの端末の書込みでも来る。詳細で1件直すたびに並びを組み直さないよう、詳細に
+  /// 居る間は何もしない — 戻ったときに読み直す。見ていないタブも読まない（タブ入場で読む）。
+  /// **notice は出さない** — 利用者が何もしていないのに「外しました」が出ると読めない。
+  void _followLedger() {
+    if (ref.read(currentTabProvider) != ShellTab.lending) return;
+    if (ref.read(lendingRouteProvider).screen != LendingScreen.overview) return;
+    if (state.unread || state.loading || state.busyLoanId != null) return;
+    refresh(notify: false);
+  }
+
+  /// 読み直して枠と並びを作り直す。
   ///
   /// 終端にした行はここで落ちる — 合成層の読み口が返さなくなるからで、**消す処理は
-  /// 書いていない。**
-  void refresh() {
+  /// 書いていない。** [notify] が `false` なら外した件数の notice を出さない。
+  void refresh({bool notify = true}) {
     final composition = ref.read(compositionProvider);
     final dropped = state.leavingCount;
     state = state.copy(loading: true, clearError: true);
@@ -594,8 +626,8 @@ class Lending extends _$Lending {
       }),
       filter: state.filter,
       asOf: localToday(),
-      message: dropped > 0 ? '一覧を更新し、$dropped件を外しました。' : '',
-      messageId: state.messageId + 1,
+      message: notify && dropped > 0 ? '一覧を更新し、$dropped件を外しました。' : '',
+      messageId: notify ? state.messageId + 1 : state.messageId,
     );
   }
 

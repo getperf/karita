@@ -218,6 +218,13 @@ void main() {
     expect(find.byKey(const ValueKey('lending.filter.all')), findsNothing);
   });
 
+  testWidgets('更新ボタンは詳細にだけあり、初期画面には無い（2026-10-20）', (tester) async {
+    await pump(tester);
+    expect(find.byKey(const ValueKey('lending.refresh')), findsNothing);
+    await openArea(tester, 'Tokyo_Koto');
+    expect(find.byKey(const ValueKey('lending.refresh')), findsOneWidget);
+  });
+
   testWidgets('返却した行は位置に残り、更新で外れる', (tester) async {
     final container = await pump(tester);
     await openArea(tester, 'Tokyo_Koto');

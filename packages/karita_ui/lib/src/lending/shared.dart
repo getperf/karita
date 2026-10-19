@@ -35,7 +35,9 @@ ButtonStyle lendingLinkStyle(BuildContext context) {
   );
 }
 
-/// 一覧を読み直す操作。**契機はこことタブ入場の2つだけである**（段階3 の決定）。
+/// 詳細の一覧を読み直す操作。**詳細は台帳の変更で読み直さない**（段階3 の決定）。
+///
+/// 初期画面には置かない（2026-10-20）。初期画面は同期が台帳を変えたら読み直す。
 class LendingRefreshButton extends ConsumerWidget {
   const LendingRefreshButton({super.key});
 
@@ -74,7 +76,12 @@ class LendingFailure extends ConsumerWidget {
       children: [
         Text(lendingIssueMessage(code)),
         const SizedBox(height: 8),
-        const LendingRefreshButton(),
+        // **初期画面にも出るので `↻ 更新` ではなく再試行にする**（2026-10-20）。
+        TextButton(
+          key: const ValueKey('lending.retry'),
+          onPressed: ref.read(lendingProvider.notifier).refresh,
+          child: const Text('再試行'),
+        ),
       ],
     ),
   );

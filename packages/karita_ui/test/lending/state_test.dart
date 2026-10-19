@@ -1,7 +1,8 @@
 /// 貸出し一覧の状態。**デモの台帳に対して、widget を立てずに測る。**
 ///
-/// ここで確かめるのは段階3 の決定そのものである — 読み直す契機は2つだけ、書込みでは行が
-/// 動かない、終端行は更新まで残る、件数はフィルタごとに全区の合計。
+/// ここで確かめるのは段階3 の決定そのものである — 読み直す契機（初期画面は台帳の変更でも
+/// 読み直し、詳細は動かさない。2026-10-20）、書込みでは行が動かない、終端行は更新まで残る、
+/// 件数はフィルタごとに全区の合計。
 library;
 
 import 'dart:io';
@@ -72,14 +73,55 @@ void main() {
       expect(fresh.read(lendingProvider).order, hasLength(13));
     });
 
-    test('台帳が変わっても勝手には読み直さない', () async {
-      final before = state().order.length;
-      // 合成層の変更通知（`ledgerRevisionProvider` が見ている経路）を起こす。
-      final sumida = app.loadLibraries().firstWhere(
-        (s) => s.id == 'Tokyo_Sumida',
+    /// 合成層の変更通知（`ledgerRevisionProvider` が見ている経路）は非同期に届く。
+    Future<void> settle() => Future<void>.delayed(Duration.zero);
+
+    test('初期画面を見ている間は、台帳が変わると読み直す（2026-10-20）', () async {
+      container.read(currentTabProvider.notifier).select(ShellTab.lending);
+      final target = loanIn('Tokyo_Koto', 'borrowed');
+      final messageId = state().messageId;
+      // 返却の書込みが変更通知を起こす。
+      actions.apply(loanId: target, action: 'return');
+      await settle();
+      expect(state().order.contains(target), isFalse);
+      expect(state().leaving, isEmpty);
+      expect(
+        state().messageId,
+        equals(messageId + 1),
+        reason: '自動の読み直しは notice を出さない（返却の notice だけ）',
       );
-      await app.savePreferredBranch('Tokyo_Sumida', sumida.branches.first.id);
-      expect(state().order, hasLength(before), reason: '一覧は ledger を見ない');
+    });
+
+    test('詳細に居る間は、台帳が変わっても読み直さない', () async {
+      container.read(currentTabProvider.notifier).select(ShellTab.lending);
+      container.read(lendingRouteProvider.notifier).openArea('Tokyo_Koto');
+      final target = loanIn('Tokyo_Koto', 'borrowed');
+      final index = state().order.indexOf(target);
+      actions.apply(loanId: target, action: 'return');
+      await settle();
+      expect(state().order.indexOf(target), equals(index), reason: '位置に残る');
+      expect(state().leaving[target], equals('returned'));
+    });
+
+    test('別のタブに居る間は、台帳が変わっても読み直さない', () async {
+      final target = loanIn('Tokyo_Koto', 'borrowed');
+      actions.apply(loanId: target, action: 'return');
+      await settle();
+      expect(state().leaving[target], equals('returned'));
+    });
+
+    test('詳細から初期画面へ戻ると読み直す', () async {
+      container.read(currentTabProvider.notifier).select(ShellTab.lending);
+      final route = container.read(lendingRouteProvider.notifier);
+      route.openArea('Tokyo_Koto');
+      final target = loanIn('Tokyo_Koto', 'borrowed');
+      actions.apply(loanId: target, action: 'return');
+      await settle();
+      expect(state().leaving[target], equals('returned'));
+
+      route.back();
+      expect(state().order.contains(target), isFalse);
+      expect(state().message, contains('1件'), reason: '戻ったのは利用者の操作である');
     });
   });
 

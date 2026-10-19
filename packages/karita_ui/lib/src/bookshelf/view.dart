@@ -194,16 +194,14 @@ class _ShelfSessionState extends ConsumerState<_ShelfSession> {
               padding: const EdgeInsets.all(14),
               child: Column(
                 children: [
-                  Row(
-                    children: [
-                      Text('本棚', style: Theme.of(context).textTheme.titleLarge),
-                      const Spacer(),
-                      IconButton(
-                        tooltip: '本棚を更新',
-                        onPressed: () => ref.invalidate(bookshelfProvider),
-                        icon: const Icon(Icons.refresh),
-                      ),
-                    ],
+                  // **更新ボタンを置かない**（2026-10-20）。一覧は台帳の変更で読み直す
+                  // （`state.dart` の `bookshelf`）。手動では他の端末を揃えられない。
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      '本棚',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
                   ),
                   TextField(
                     key: const ValueKey('shelf.search'),
