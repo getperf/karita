@@ -33,6 +33,10 @@ import 'package:karita_sync/karita_sync.dart';
 import 'package:logging/logging.dart';
 
 import 'background.dart';
+import 'bookshelf_export/models.dart';
+import 'bookshelf_export/mapper.dart';
+import 'bookshelf_export/csv_encoder.dart';
+import 'bookshelf_export/json_encoder.dart';
 import 'book_lookup.dart';
 import 'demo.dart';
 import 'demo_fixture.dart';
@@ -65,6 +69,7 @@ part 'composition/diagnostics_part.dart';
 part 'composition/account_part.dart';
 part 'composition/backup_part.dart';
 part 'composition/records_part.dart';
+part 'composition/bookshelf_export_part.dart';
 part 'composition/libraries_part.dart';
 part 'composition/handoff_part.dart';
 part 'composition/library_settings_part.dart';
@@ -223,6 +228,8 @@ class Composition {
   /// 混ぜない** — `null` を `false` に潰すと、一度も診断していない端末が「健全」を名乗る。
   DoctorReport? lastDoctor;
 
+  final ExportDelivery _exportDelivery;
+
   Composition({
     required this.paths,
     required DeviceSettings settings,
@@ -243,8 +250,14 @@ class Composition {
     BookLookup? bookInfo,
     CalilLibraryClient? libraryClient,
     this.refresh,
+    ExportDelivery? exportDelivery,
     void Function()? disposeLedger,
-  }) : _settings = settings,
+  }) : _exportDelivery =
+           exportDelivery ??
+           (Platform.isAndroid
+               ? const AndroidExportDelivery()
+               : const WindowsExportDelivery()),
+       _settings = settings,
        _disposeLedger = disposeLedger ?? _nothing,
        bookInfo = bookInfo ?? BookLookup(OpenBdClient()),
        _libraryClient = libraryClient;
@@ -319,4 +332,3 @@ class Composition {
 /// 読み手は2つある — 周期リフレッシュの `ready:` と、外殻のゲート（[Composition.bootReady]）。
 /// **回し始める条件と画面を開く条件は同じもの**なので、片方だけが動く形にしない。
 bool _setupComplete(Db db) => localGeneration(db) != null;
-

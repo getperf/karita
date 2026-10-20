@@ -11,6 +11,7 @@ Future<Composition> compose({
   // 試験が実ブラウザーを起こさないための差し替え口。**本番は渡さない。**
   Future<void> Function(Uri url)? openBrowser,
   BrowserLauncher? browsers,
+  ExportDelivery? exportDelivery,
 }) async {
   // **種はデモと直交する。** デモは自分の起動準備として fixture を入れ、検証モードは
   // `KARITA_SEED` で同じ fixture を本番の台帳へ入れる
@@ -117,6 +118,7 @@ Future<Composition> compose({
     );
 
     final composition = Composition(
+      exportDelivery: exportDelivery,
       paths: paths,
       settings: settings,
       mode: mode,
@@ -153,7 +155,8 @@ Future<Composition> compose({
                 // ごとに `about.get` を足さない。**旗が立っている間は照合しない回も止める。**
                 final identity = readyComposition;
                 if (identity != null) {
-                  final check = trigger == RefreshTrigger.startup ||
+                  final check =
+                      trigger == RefreshTrigger.startup ||
                       trigger == RefreshTrigger.resume ||
                       trigger == RefreshTrigger.manual;
                   if (check) {

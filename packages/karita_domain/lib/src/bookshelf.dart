@@ -179,12 +179,10 @@ class Bookshelf {
               ? '返却済み'
               : '手動登録',
           histories: List.unmodifiable(history),
-          activeStatuses: List.unmodifiable(
-            [
-              for (final s in const ['reserved', 'ready_for_pickup', 'borrowed'])
-                if (active[id]?.contains(s) ?? false) s,
-            ],
-          ),
+          activeStatuses: List.unmodifiable([
+            for (final s in const ['reserved', 'ready_for_pickup', 'borrowed'])
+              if (active[id]?.contains(s) ?? false) s,
+          ]),
           rating: review?['rating'] as int?,
           review: review?['review'] as String? ?? '',
           reviewRevision: _revision(review),
@@ -228,6 +226,21 @@ class Bookshelf {
     final payload = p == null || p['is_deleted'] == 1
         ? <String, Object?>{'book_id': bookId}
         : context.mapping.rowToPayload(entityBookPreference, p);
+    // Preserve an observed read registration before changing the manual basis.
+    // A stale, unobserved return must not create a new registration.
+    final returnTimes = context.db
+        .select(
+          "SELECT first_return_at_utc FROM loans WHERE book_id = ? AND status = 'returned' AND first_return_basis = ? AND first_return_at_utc IS NOT NULL",
+          [bookId, p?['shelf_token'] ?? ''],
+        )
+        .map((r) => r['first_return_at_utc'] as String)
+        .toList();
+    final previousRead = payload['read_registered_at_utc'] as String?;
+    if (previousRead != null) returnTimes.add(previousRead);
+    if (returnTimes.isNotEmpty) {
+      returnTimes.sort();
+      payload['read_registered_at_utc'] = returnTimes.last;
+    }
     final operation = context.uuid();
     payload.addAll({
       'want_to_read': target == 'wanted',
@@ -235,7 +248,9 @@ class Bookshelf {
       'shelf_token': operation,
       'shelf_changed_at_utc': now,
     });
+    if (target == 'wanted') payload['wanted_registered_at_utc'] = now;
     if (target == 'read') {
+      payload['read_registered_at_utc'] = now;
       payload['manual_reads'] = [
         ..._array(p?['manual_reads']),
         {'id': operation, 'on': readOn ?? now.substring(0, 10)},

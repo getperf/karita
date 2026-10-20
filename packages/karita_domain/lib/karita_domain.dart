@@ -53,3 +53,5 @@ export 'src/registration.dart';
 export 'src/reservations.dart';
 
 export 'src/bookshelf.dart';
+
+export 'src/bookshelf_export.dart';

@@ -547,4 +547,8 @@ CREATE TABLE book_reviews (
 );
 CREATE INDEX idx_book_reviews_book ON book_reviews(book_id);
 ''',
+  '0014_bookshelf_registration.sql': r'''
+ALTER TABLE book_preferences ADD COLUMN wanted_registered_at_utc TEXT;
+ALTER TABLE book_preferences ADD COLUMN read_registered_at_utc TEXT;
+''',
 };

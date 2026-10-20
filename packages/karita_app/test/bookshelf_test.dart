@@ -251,7 +251,7 @@ void main() {
       now: '2026-09-01T00:00:00Z',
       sources: {
         for (final e in migrationSources.entries)
-          if (!e.key.startsWith('0013')) e.key: e.value,
+          if (e.key.compareTo('0013') < 0) e.key: e.value,
       },
     );
     db.execute(

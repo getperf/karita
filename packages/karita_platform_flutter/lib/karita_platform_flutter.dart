@@ -30,3 +30,6 @@ export 'src/app_links_share_inbox.dart';
 export 'src/authorization_client.dart';
 export 'src/channel_share_inbox.dart';
 export 'src/external_browser.dart';
+
+export 'src/windows_export_delivery.dart';
+export 'src/android_export_delivery.dart';

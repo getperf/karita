@@ -32,6 +32,7 @@ export 'package:karita_app/karita_app.dart'
         CompositionLibraries,
         CompositionLibrarySettings,
         CompositionRecords,
+        CompositionBookshelfExport,
         CompositionSettings,
         CompositionSync;
 

@@ -28,6 +28,7 @@ import '../libraries/state.dart';
 import '../reservation/state.dart';
 import '../shell/navigation.dart';
 import 'record.dart';
+import 'export.dart';
 import 'row.dart';
 import 'shared.dart';
 import 'state.dart';
@@ -40,9 +41,7 @@ class BookshelfView extends ConsumerWidget {
     ref.watch(ledgerRevisionProvider);
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: contentMaxWidth),
-      child: _ShelfSession(
-        key: ObjectKey(ref.watch(ledgerSessionProvider)),
-      ),
+      child: _ShelfSession(key: ObjectKey(ref.watch(ledgerSessionProvider))),
     );
   }
 }
@@ -289,6 +288,7 @@ class _ShelfSessionState extends ConsumerState<_ShelfSession> {
                             if (b.state == 'wanted') b,
                         ],
                       ),
+                      const BookshelfExportButton(),
                     ],
                   ),
                   Align(

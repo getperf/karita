@@ -31,3 +31,5 @@ export 'src/mypage_defaults.dart';
 export 'src/public_api.dart';
 export 'src/refresh.dart';
 export 'src/settings.dart';
+
+export 'src/bookshelf_export/models.dart';

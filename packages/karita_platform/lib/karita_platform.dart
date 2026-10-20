@@ -37,3 +37,5 @@ export 'src/oauth.dart';
 export 'src/rest_drive_client.dart';
 export 'src/share_inbox.dart';
 export 'src/token_protection.dart';
+
+export 'src/export_delivery.dart';

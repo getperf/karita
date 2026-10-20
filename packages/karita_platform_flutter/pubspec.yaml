@@ -27,6 +27,8 @@ dependencies:
   karita_contract: ^0.1.0
   karita_platform: ^0.1.0
   karita_sync: ^0.1.0
+  file_selector: ^1.0.4
+  share_plus: ^12.0.1
   path_provider: ^2.1.5
   # **`sqlite3_flutter_libs` は持たない**（P5a で外した。2026-09-14）。
   #

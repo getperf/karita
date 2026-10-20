@@ -172,19 +172,155 @@ const Map<String, String> schemaSources = {
   }
 }
 ''',
+  'sync-event-v4.schema.json': r'''
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://frsw3.invalid/book-sync-model/schema/sync-event-v4.schema.json",
+  "title": "SyncEvent envelope v4",
+  "description": "Version 4 adds latest bookshelf registration timestamps. Upgrade all devices before bookshelf operations.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "eventId",
+    "deviceId",
+    "createdAtUtc",
+    "entityType",
+    "entityId",
+    "operation",
+    "baseVersion",
+    "resultVersion",
+    "payloadHash",
+    "payload"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 4,
+      "description": "Version 4 only. Supported versions are defined in envelope-versions.json."
+    },
+    "eventId": {
+      "$ref": "#/$defs/uuid"
+    },
+    "deviceId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "端末ごとに一意。例: windows-<UUID>"
+    },
+    "createdAtUtc": {
+      "$ref": "#/$defs/utcTimestamp"
+    },
+    "entityType": {
+      "enum": [
+        "book",
+        "book_preference",
+        "library_system",
+        "library",
+        "library_membership",
+        "library_setting",
+        "loan",
+        "reading_record",
+        "book_review"
+      ],
+      "description": "Version 2 entity types plus book_review."
+    },
+    "entityId": {
+      "$ref": "#/$defs/uuid"
+    },
+    "operation": {
+      "enum": [
+        "upsert",
+        "tombstone"
+      ]
+    },
+    "baseVersion": {
+      "$ref": "#/$defs/version",
+      "description": "編集開始時点で端末が認識していた版。新規作成は 0。"
+    },
+    "resultVersion": {
+      "$ref": "#/$defs/version",
+      "minimum": 1,
+      "description": "更新後の版。常に baseVersion より大きい。この関係はJSON Schemaで表現できないため実装側で検査する。"
+    },
+    "payloadHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "正準化した payload のSHA-256。正準化規則は docs/architecture/sqlite-drive-sync-protocol.md を正本とする。"
+    },
+    "resolvesEventIds": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/uuid"
+      },
+      "uniqueItems": true,
+      "default": [],
+      "description": "競合解決イベントが決着させた eventId の一覧。受信側はこれに自端末の未解決conflictを含む場合、版判定を迂回して適用する。空でも省略せず [] を書く。省略できると、封筒のバイト列が実装ごとに変わる。"
+    },
+    "domainEventType": {
+      "$ref": "#/$defs/domainEventType"
+    },
+    "payload": {
+      "type": "object",
+      "description": "更新後の集約スナップショット。部分更新ではない。tombstone では最小限でよい。集約ごとの形は payload/<entityType>.schema.json が定める。この封筒スキーマでは拘束しない — entityType の enum は7集約すべてを許すが、payloadスキーマがあるのは実装済みの集約だけである。"
+    }
+  },
+  "$defs": {
+    "domainEventType": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z][A-Za-z0-9]*$",
+      "description": "受信側でも同じ DomainEvent を書けるようにするための語彙（例 PatrolCompleted）。**同期層はこの値を解釈しない。** 語彙は bops の持ち物であり、封筒は運ぶだけである。ここに enum を書くと、業務イベントを増やすたびに封筒の版が上がる。値が無いときはキーを出さない — null を書くか省くかで正準化のバイト列が変わるため、規則を「値があるときだけ」の一本にする。"
+    },
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "utcTimestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$",
+      "description": "RFC3339秒精度・Z終端のみ。オフセット表記を許さない。"
+    },
+    "localDate": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "図書館のローカル暦日。payload 内の *_on 列が従う。集約ごとのpayloadスキーマを追加する際に参照する。"
+    },
+    "nullableLocalDate": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/localDate"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "payload はスナップショットであり、空の項目は省略しても null で書いてもよい。"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991,
+      "description": "上限は 2^53-1 とする。Dart の int は 64bit だが Web では double であり、2^53 を超えると値が変わる。上限を宣言しないと Python でだけ通る封筒ができる。"
+    }
+  }
+}
+''',
   'envelope-versions.json': r'''
 {
   "description": "封筒の版の宣言。受理する版の集合と、発行する版を分けて持つ。PythonとDartがこの同じファイルを読む。受理集合はスキーマを持っている版の集合であり、形を検証できることと受理できることが同義になる。発行版を max(supported) にしないのは、新しい版のスキーマを置いても発行が上がってはならないためである。全端末が新版を受理できるようになってから発行を上げる、という二段階が要る。ファイル名を .schema.json で終わらせないのは、これがスキーマではなく宣言であり、スキーマ登録の走査に拾わせないためである。",
   "supported": [
     1,
     2,
-    3
+    3,
+    4
   ],
-  "emit": 3,
+  "emit": 4,
   "schemaByVersion": {
     "1": "sync-event.schema.json",
     "2": "sync-event-v2.schema.json",
-    "3": "sync-event-v3.schema.json"
+    "3": "sync-event-v3.schema.json",
+    "4": "sync-event-v4.schema.json"
   }
 }
 ''',
@@ -263,6 +399,12 @@ const Map<String, String> schemaSources = {
         "string",
         "null"
       ]
+    },
+    "wanted_registered_at_utc": {
+      "anyOf": [{"$ref": "../sync-event.schema.json#/$defs/utcTimestamp"}, {"type": "null"}]
+    },
+    "read_registered_at_utc": {
+      "anyOf": [{"$ref": "../sync-event.schema.json#/$defs/utcTimestamp"}, {"type": "null"}]
     },
     "manual_reads": {
       "type": "array",

@@ -184,6 +184,15 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('export is directly to the right of holdings in the action row', (tester) async {
+    await pump(tester, size: const Size(900, 1000));
+    final holdings = tester.getRect(button);
+    final export = tester.getRect(find.byKey(const ValueKey('shelf.export')));
+    expect(export.left, greaterThanOrEqualTo(holdings.right));
+    expect(export.center.dy, closeTo(holdings.center.dy, 1));
+    expect(export.top, greaterThan(tester.getRect(find.byKey(const ValueKey('shelf.search'))).bottom));
+  });
+
   group('始める契機', () {
     testWidgets('**描画では照会しない。** 押す前の行に蔵書の語は出ない', (tester) async {
       await pump(tester);

@@ -218,10 +218,14 @@ class Applier {
         ? aggregates.read(db, item.entityType!, item.entityId ?? '')
         : null;
     final legacyWrite =
-        item.schemaVersion < 3 &&
         protected != null &&
-        (protected['shelf_token'] != null ||
-            protected['first_return_at_utc'] != null) &&
+        ((item.schemaVersion < 3 &&
+                (protected['shelf_token'] != null ||
+                    protected['first_return_at_utc'] != null)) ||
+            (item.schemaVersion < 4 &&
+                item.entityType == entityBookPreference &&
+                (protected['wanted_registered_at_utc'] != null ||
+                    protected['read_registered_at_utc'] != null))) &&
         !state.appliedEventIds.contains(item.eventId);
     // 旧スナップショットは新しい本棚の因果情報を消してしまう。未適用のまま保持する。
     final decision = legacyWrite
