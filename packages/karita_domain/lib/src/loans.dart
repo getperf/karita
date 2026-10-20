@@ -43,6 +43,9 @@ const Map<String, LoanAction> loanActions = {
   'correct-due-date': LoanAction('borrowed', 'LoanDueDateCorrected'),
   'correct-pickup-due-date':
       LoanAction('ready_for_pickup', 'LoanPickupDueDateCorrected'),
+
+  /// 予約日を館サイトの値へ直す。**`reserve` と違い、既にある予約日を上書きする。**
+  'correct-reserved-date': LoanAction('reserved', 'LoanReservedDateCorrected'),
   'return': LoanAction('returned', 'LoanReturned'),
   'cancel': LoanAction('cancelled', 'LoanCancelled'),
   'expire': LoanAction('expired', 'LoanExpired'),
@@ -175,6 +178,7 @@ class Loans {
   Envelope update({
     required String loanId,
     required String action,
+    String? reservedOn,
     String? pickupAvailableOn,
     String? pickupDueOn,
     String? borrowedOn,
@@ -262,6 +266,10 @@ class Loans {
               ),
           '取置期限',
         );
+      case 'correct-reserved-date':
+        // **予約日だけを直す。** アプリへ登録した日が入っている予約を、館サイトで確認した
+        // 予約日へ合わせる。他の日付は動かさない。
+        payload['reserved_on'] = _date(reservedOn ?? defaultOn, '予約日');
       case 'expire':
         payload['pickup_due_on'] = _date(
           pickupDueOn ?? payload['pickup_due_on'] as String?,

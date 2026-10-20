@@ -17,6 +17,7 @@ LoanReportItem item({
   String? pickupDueOn,
   String? reservedOn,
   String? urgency,
+  String? updatedAtUtc,
 }) => LoanReportItem(
   loanId: loanId,
   bookId: 'b',
@@ -33,6 +34,7 @@ LoanReportItem item({
   pickupDueOn: pickupDueOn,
   reservedOn: reservedOn,
   urgency: urgency,
+  updatedAtUtc: updatedAtUtc,
 );
 
 void main() {
@@ -172,6 +174,53 @@ void main() {
         item(loanId: 'old', status: 'reserved', reservedOn: '2026-08-10'),
       ]..sort(compareLoanItems);
       expect(rows.map((i) => i.loanId), equals(['old', 'new']));
+    });
+
+    /// 館サイトは予約日の中を予約した順に出す。館サイトの並びの順に予約日を直せば、直した
+    /// 時刻がその順を写す。**題の順ではない。**
+    test('同じ予約日の予約中は書いた時刻の早い順である', () {
+      final rows = [
+        item(
+          loanId: 'a',
+          status: 'reserved',
+          title: 'a',
+          reservedOn: '2026-10-19',
+          updatedAtUtc: '2026-10-20T01:00:03Z',
+        ),
+        item(
+          loanId: 'b',
+          status: 'reserved',
+          title: 'b',
+          reservedOn: '2026-10-19',
+          updatedAtUtc: '2026-10-20T01:00:01Z',
+        ),
+        item(
+          loanId: 'c',
+          status: 'reserved',
+          title: 'c',
+          reservedOn: '2026-10-19',
+          updatedAtUtc: '2026-10-20T01:00:02Z',
+        ),
+      ]..sort(compareLoanItems);
+      expect(rows.map((i) => i.loanId), equals(['b', 'c', 'a']));
+    });
+
+    test('期限で並ぶ状態は書いた時刻を見ない。題で決める', () {
+      final rows = [
+        item(
+          loanId: 'a',
+          title: 'a',
+          dueOn: '2026-10-28',
+          updatedAtUtc: '2026-10-20T02:00:00Z',
+        ),
+        item(
+          loanId: 'b',
+          title: 'b',
+          dueOn: '2026-10-28',
+          updatedAtUtc: '2026-10-20T01:00:00Z',
+        ),
+      ]..sort(compareLoanItems);
+      expect(rows.map((i) => i.loanId), equals(['a', 'b']));
     });
   });
 

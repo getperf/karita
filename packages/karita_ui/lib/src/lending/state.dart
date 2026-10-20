@@ -146,6 +146,11 @@ bool matchesFilter(LoanReportItem item, LendingFilter filter, String limit) =>
 ///
 /// 期限を持たない予約中は予約日で並べ、最後は `loanId` まで見て必ず決めきる。同じ台帳が
 /// 読むたびに違う並びになると、「連続操作で行が動かない」が成り立たない。
+///
+/// **同じ予約日の予約中は `updated_at_utc` の早い順**（2026-10-20）。館サイトは予約日の中を
+/// 予約した順に出す。予約日は日付しか持たないので、館サイトの並びの順に予約日を直していけば、
+/// 直した時刻がその順を写す。受取館やメモを書き直すとその日の末尾へ動くが、予約中の行が
+/// 書き換わる機会は少ない。期限で並ぶ取置中・貸出中には使わない。
 int compareLoanItems(LoanReportItem a, LoanReportItem b) {
   const rank = {'ready_for_pickup': 0, 'borrowed': 1, 'reserved': 2};
   String key(LoanReportItem item) =>
@@ -154,6 +159,10 @@ int compareLoanItems(LoanReportItem a, LoanReportItem b) {
   if (byStatus != 0) return byStatus;
   final byDate = key(a).compareTo(key(b));
   if (byDate != 0) return byDate;
+  if (a.status == 'reserved') {
+    final byWritten = (a.updatedAtUtc ?? '').compareTo(b.updatedAtUtc ?? '');
+    if (byWritten != 0) return byWritten;
+  }
   final byTitle = a.title.compareTo(b.title);
   return byTitle != 0 ? byTitle : a.loanId.compareTo(b.loanId);
 }
@@ -644,6 +653,7 @@ class Lending extends _$Lending {
   void apply({
     required String loanId,
     required String action,
+    String? reservedOn,
     String? pickupAvailableOn,
     String? pickupDueOn,
     String? borrowedOn,
@@ -656,6 +666,7 @@ class Lending extends _$Lending {
       composition.updateLoan(
         loanId: loanId,
         action: action,
+        reservedOn: reservedOn,
         pickupAvailableOn: pickupAvailableOn,
         pickupDueOn: pickupDueOn,
         borrowedOn: borrowedOn,

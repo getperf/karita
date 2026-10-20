@@ -596,34 +596,38 @@ void main() {
     );
   });
 
-  /// **枠は均等のまま残し、中身を `--/--` にする**（モックの `--/--`）。列が4つに減ると
-  /// 行ごとにボタンの幅が変わり、押す位置が揃わなくなる。
-  testWidgets('予約中の行の期限は --/-- で、押せない', (tester) async {
+  /// **予約中のセルは予約日を出し、押すと予約日を直す**（2026-10-20）。館サイトは予約日順に
+  /// 並べるので、登録日が入ったままだと並びがずれる。期限と取り違えないよう淡い色で出す。
+  testWidgets('予約中の行は予約日を出し、1クリックで予約日を直す', (tester) async {
     final container = await pump(tester);
     await openArea(tester, 'Tokyo_Katsushika');
     final target = loanIn(container, 'Tokyo_Katsushika');
-    expect(
-      container.read(lendingProvider).rows[target]!.status,
-      equals('reserved'),
-    );
+    final before = container.read(lendingProvider).rows[target]!;
+    expect(before.status, equals('reserved'));
+    final reservedOn = before.reservedOn!;
     await tester.scrollUntilVisible(
       find.byKey(ValueKey('lending.row.$target')),
       200,
     );
     final date = find.byKey(ValueKey('lending.date.$target'));
-    expect(date, findsOneWidget);
     expect(
-      find.descendant(of: date, matching: find.text('--/--')),
+      find.descendant(
+        of: date,
+        matching: find.text(
+          '${reservedOn.substring(5, 7)}/${reservedOn.substring(8, 10)}',
+        ),
+      ),
       findsOneWidget,
     );
-    expect(
-      tester
-          .widget<OutlinedButton>(
-            find.descendant(of: date, matching: find.byType(OutlinedButton)),
-          )
-          .onPressed,
-      isNull,
-    );
+
+    await tapRow(tester, ValueKey('lending.date.$target'));
+    final day = DateTime.parse(reservedOn).day == 15 ? '16' : '15';
+    await tester.tap(find.text(day).last);
+    await tester.pumpAndSettle();
+
+    final after = container.read(lendingProvider).rows[target]!;
+    expect(after.status, equals('reserved'));
+    expect(after.reservedOn!.substring(8), equals(day.padLeft(2, '0')));
   });
 
   testWidgets('スクロール位置を保つ。区へ入って戻っても先頭へ跳ねない', (tester) async {

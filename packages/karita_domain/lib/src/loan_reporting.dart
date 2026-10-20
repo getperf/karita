@@ -36,6 +36,9 @@ class LoanReportItem {
   final String? loanLibraryId;
   final String? loanLibraryName;
   final String? urgency;
+
+  /// 最後に書いた時刻（UTC）。**画面が同じ予約日の行を並べるのに使う。**
+  final String? updatedAtUtc;
   final bool configured;
 
   /// 同一 `systemId`・同一 `bookId` のアクティブ Loan のうち実効の1件。**残りも消さない。**
@@ -71,6 +74,7 @@ class LoanReportItem {
     this.loanLibraryId,
     this.loanLibraryName,
     this.urgency,
+    this.updatedAtUtc,
     this.effective = true,
     this.duplicateOf,
     this.parallelSystemIds = const [],
@@ -207,6 +211,7 @@ class LoanReporting {
         loanLibraryName: branchNames['${row['loan_library_id'] ?? ''}'],
         urgency: _urgency(status, row['pickup_due_on'] as String?,
             row['due_on'] as String?, asOf),
+        updatedAtUtc: row['updated_at_utc'] as String?,
         configured: system != null,
         effective: winner == loanId,
         duplicateOf: winner == loanId ? null : winner,

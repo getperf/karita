@@ -138,6 +138,7 @@ extension CompositionRecords on Composition {
   void updateLoan({
     required String loanId,
     required String action,
+    String? reservedOn,
     String? pickupAvailableOn,
     String? pickupDueOn,
     String? borrowedOn,
@@ -150,6 +151,7 @@ extension CompositionRecords on Composition {
     Loans(domain).update(
       loanId: loanId,
       action: action,
+      reservedOn: reservedOn,
       pickupAvailableOn: pickupAvailableOn,
       pickupDueOn: pickupDueOn,
       borrowedOn: borrowedOn,

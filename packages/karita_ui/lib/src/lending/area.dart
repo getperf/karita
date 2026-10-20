@@ -412,7 +412,8 @@ class _Row extends ConsumerWidget {
                       width: density.pointer == PointerKind.touch ? 76 : 66,
                       child: _DateButton(
                         key: ValueKey('lending.date.$loanId'),
-                        deadline: leaving ? null : deadlineOf(item),
+                        deadline: leaving ? null : _dateOf(item),
+                        muted: item.status == 'reserved',
                         height: density.control,
                         onPressed:
                             busy ||
@@ -481,12 +482,20 @@ class _Row extends ConsumerWidget {
     );
   }
 
-  /// 期限を直す操作。**予約中と返却済は期限を持たないので無い。**
+  /// 日付を直す操作。**予約中は予約日を直す**（2026-10-20）。返却済は無い。
   static String? _dateActionFor(String status) => switch (status) {
+    'reserved' => 'correct-reserved-date',
     'ready_for_pickup' => 'correct-pickup-due-date',
     'borrowed' => 'correct-due-date',
     _ => null,
   };
+
+  /// 日付のセルに出す値。**予約中は期限の代わりに予約日を出す。**
+  ///
+  /// 予約日は館サイトの並び（予約日順）と照らして直すためにある。期限と取り違えないよう、
+  /// セルは淡い色で出す（[_DateButton.muted]）。
+  static String? _dateOf(LoanReportItem item) =>
+      item.status == 'reserved' ? item.reservedOn : deadlineOf(item);
 
   /// 期限を選ぶ。**日を押した時点で確定する。OK は置かない**（2026-09-19）。
   ///
@@ -505,7 +514,7 @@ class _Row extends ConsumerWidget {
     final action = _dateActionFor(status);
     if (action == null) return;
     final now = DateTime.now();
-    final current = DateTime.tryParse(deadlineOf(item) ?? '') ?? now;
+    final current = DateTime.tryParse(_dateOf(item) ?? '') ?? now;
     final picked = await showDialog<DateTime>(
       context: context,
       builder: (context) => Dialog(
@@ -545,6 +554,7 @@ class _Row extends ConsumerWidget {
         .apply(
           loanId: loanId,
           action: action,
+          reservedOn: action == 'correct-reserved-date' ? value : null,
           pickupDueOn: action == 'correct-pickup-due-date' ? value : null,
           dueOn: action == 'correct-due-date' ? value : null,
         );
@@ -669,10 +679,14 @@ class _DateButton extends StatelessWidget {
     required this.deadline,
     required this.height,
     required this.onPressed,
+    this.muted = false,
   });
 
   /// `YYYY-MM-DD`。無ければ `null`。
   final String? deadline;
+
+  /// 期限ではない日付（予約日）。**淡い色で出し、期限と見分ける。**
+  final bool muted;
 
   final double height;
 
@@ -689,7 +703,7 @@ class _DateButton extends StatelessWidget {
       style: OutlinedButton.styleFrom(
         padding: EdgeInsets.zero,
         minimumSize: Size(0, height),
-        foregroundColor: scheme.onSurface,
+        foregroundColor: muted ? scheme.onSurfaceVariant : scheme.onSurface,
         side: BorderSide(color: scheme.outlineVariant),
       ),
       child: Text(value, maxLines: 1),

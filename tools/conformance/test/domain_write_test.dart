@@ -427,6 +427,34 @@ void main() {
       expect(fixed.payload['pickup_due_on'], equals('2026-08-12'));
     });
 
+    /// **`reserve` と違い、既にある予約日を上書きする。** アプリへ登録した日が入った予約を、
+    /// 館サイトで確認した予約日へ合わせるためにある。
+    test('予約日の訂正は予約日だけを上書きする', () {
+      final fixed = device.loans.update(
+          loanId: loanId,
+          action: 'correct-reserved-date',
+          reservedOn: '2026-07-21',
+          now: t1);
+      expect(fixed.payload['status'], equals('reserved'));
+      expect(fixed.payload['reserved_on'], equals('2026-07-21'));
+      expect(fixed.payload['pickup_library_id'], equals('minato-main'));
+      final kinds = device.db
+          .select('SELECT event_type FROM domain_events ORDER BY occurred_at_utc')
+          .map((r) => r['event_type'])
+          .toList();
+      expect(kinds.last, equals('LoanReservedDateCorrected'));
+    });
+
+    test('予約日の訂正は壊れた日付を弾く', () {
+      expect(
+          () => device.loans.update(
+              loanId: loanId,
+              action: 'correct-reserved-date',
+              reservedOn: '2026/07/21',
+              now: t1),
+          throwsA(isA<LoanError>()));
+    });
+
     /// 取置期限の訂正は**行き先が `ready_for_pickup` である。** 前状態を見ないので、貸出中の
     /// 行に当てれば取置中へ戻る。区別は操作の名前だけが持つ。
     test('取置期限の訂正は行き先を取置中にする', () {
