@@ -12,7 +12,8 @@ class _Delivery implements ExportDelivery {
   bool fail = false;
   Uint8List? bytes;
   @override
-  ExportDeliveryKind get kind => ExportDeliveryKind.save;
+  ExportDeliveryKind kind = ExportDeliveryKind.save;
+  ExportDeliveryResult result = ExportDeliveryResult.saved;
   @override
   Future<ExportDeliveryResult> deliver({
     required Uint8List bytes,
@@ -21,7 +22,7 @@ class _Delivery implements ExportDelivery {
   }) async {
     if (fail) throw const FileSystemException('test');
     this.bytes = bytes;
-    return ExportDeliveryResult.saved;
+    return result;
   }
 }
 
@@ -85,6 +86,23 @@ void main() {
       expect(data['books'], hasLength(count));
       expect(find.text('本棚を保存しました。'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'Android action opens sharing and reports handoff rather than mail delivery',
+    (tester) async {
+      delivery.kind = ExportDeliveryKind.share;
+      delivery.result = ExportDeliveryResult.shared;
+      await pump(tester);
+      await tester.tap(find.byKey(const ValueKey('shelf.export')));
+      await tester.pumpAndSettle();
+      expect(find.text('共有する'), findsOneWidget);
+      expect(find.text('保存先を選ぶ'), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('shelf.export.confirm')));
+      await tester.pumpAndSettle();
+      expect(find.text('共有先にファイルを渡しました。'), findsOneWidget);
+      expect(delivery.bytes, isNotNull);
     },
   );
 
