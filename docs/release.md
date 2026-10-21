@@ -26,6 +26,20 @@ tools/build-windows-store.ps1 -DesktopCredentials $env:LOCALAPPDATA\Karita\crede
 token / .env / 不要な資格情報が入っていないことを確認し、必要な単体試験と WACK を実行します。
 審査結果は検証対象のハッシュと対応させます。既存の提出済みファイルを同じ版の別内容と混同しないでください。
 
+## Android
+
+**事前準備:** release keystore と `apps/karita/android/key.properties` が必要です。
+初回の作成手順は [development.md — Android release 署名](development.md#android-release-署名) を参照してください。
+
+```powershell
+cd apps/karita
+flutter build apk --release --dart-define-from-file=../../.env
+```
+
+生成物は `apps/karita/build/app/outputs/flutter-apk/app-release.apk` です。
+token / .env / 不要な資格情報が含まれていないことを確認し、実機に入れて Google サインインと
+基本動作を確認します。Google Play で配布する場合は Play Console へのアップロードに別途手順が必要です。
+
 ## ブラウザー拡張
 
 ```powershell
