@@ -1,7 +1,7 @@
 name: karita
 description: 図書館で借りる本と自分の本をまとめて管理し、Google Driveで端末間同期できるアプリ。
 publish_to: none
-version: 1.0.3
+version: 1.0.4
 
 environment:
   sdk: ^3.10.0
@@ -36,7 +36,7 @@ msix_config:
   identity_name: Getperf.karita
   publisher: CN=23AC604C-6803-421F-8152-B36628D2ED05
   publisher_display_name: Getperf
-  msix_version: 1.0.3.0
+  msix_version: 1.0.4.0
   store: true
   protocol_activation: karita
   capabilities: internetClient
