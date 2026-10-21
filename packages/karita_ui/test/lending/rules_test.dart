@@ -94,7 +94,7 @@ void main() {
     });
   });
 
-  group('フィルタ3種', () {
+  group('フィルタ4種', () {
     const limit = '2026-09-27';
     final reserved = item(status: 'reserved', reservedOn: '2026-09-01');
     final ready = item(status: 'ready_for_pickup', pickupDueOn: '2026-09-18');
@@ -110,6 +110,19 @@ void main() {
       expect(matchesFilter(borrowedSoon, LendingFilter.soon, limit), isTrue);
       expect(matchesFilter(borrowedLater, LendingFilter.soon, limit), isFalse);
       expect(matchesFilter(reserved, LendingFilter.soon, limit), isFalse);
+    });
+
+    test('貸出中は期限を問わず貸出中だけ。取置中・予約中は入らない', () {
+      expect(
+        matchesFilter(borrowedSoon, LendingFilter.borrowed, limit),
+        isTrue,
+      );
+      expect(
+        matchesFilter(borrowedLater, LendingFilter.borrowed, limit),
+        isTrue,
+      );
+      expect(matchesFilter(ready, LendingFilter.borrowed, limit), isFalse);
+      expect(matchesFilter(reserved, LendingFilter.borrowed, limit), isFalse);
     });
 
     test('予約中は予約中だけ', () {
@@ -134,7 +147,7 @@ void main() {
     test('専用のフィルタは無い。受取と返却間近に必ず含まれる', () {
       final overdue = item(dueOn: '2026-01-01', urgency: 'overdue');
       expect(isPickupOrDueSoon(overdue, '2026-09-27'), isTrue);
-      expect(LendingFilter.values, hasLength(3));
+      expect(LendingFilter.values, hasLength(4));
     });
   });
 

@@ -75,7 +75,7 @@ class LendingOverview extends ConsumerWidget {
   }
 }
 
-/// フィルタ3種。**押す前に何件出るかを併記する**（`lending.md` §2）。
+/// フィルタ4種。**押す前に何件出るかを併記する**（`lending.md` §2）。
 ///
 /// **同じ数字を並べる集計行を別に置かない。** 件数はここにしか出ない。
 class _Filters extends ConsumerWidget {
@@ -132,10 +132,7 @@ class _AreaCard extends ConsumerWidget {
               // **常用館は出さない**（2026-10-05）。全体一覧は区を選ぶ場で、常用館は
               // 区の詳細にある。未登録の警告だけは残す。
               if (!area.configured)
-                Text(
-                  'この図書館システムは登録されていません',
-                  style: theme.textTheme.bodySmall,
-                ),
+                Text('この図書館システムは登録されていません', style: theme.textTheme.bodySmall),
               // **0件の枠には何も足さない**（2026-09-20）。`この条件に該当する図書は
               // ありません` は右肩の `0件 ›` と同じことを、本文の大きさでもう一度言って
               // いた。**枠そのものが残っていること**が「この区には無い」の答えであり

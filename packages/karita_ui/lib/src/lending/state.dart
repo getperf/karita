@@ -32,7 +32,7 @@
 /// `configured`（削除済み館）、`urgency`（期限切れ・期限間近）は `LoanReportItem` が既に
 /// 持っている。**ここで作り直すと、同じ問いに二つの答えが出る。**
 ///
-/// ここが足すのは表示条件だけである — 3つのフィルタ、`systemid` 単位の束ね方、表示順、そして
+/// ここが足すのは表示条件だけである — 4つのフィルタ、`systemid` 単位の束ね方、表示順、そして
 /// 「受取と返却間近」の上限日。**どれも純関数**なので、widget を立てずに固定できる。
 library;
 
@@ -51,11 +51,14 @@ part 'state.g.dart';
 
 // --- 表示条件の純関数 -------------------------------------------------------
 
-/// 一覧のフィルタ。**3つで固定し、並びの先頭の [all] を既定にする**（2026-10-15）。
+/// 一覧のフィルタ。**4つで固定し、並びの先頭の [all] を既定にする**（2026-10-15）。
 ///
 /// 元は「取置・貸出中」を先頭・既定に置いた4つだった。**選ばれる場面が無かったので外した** —
 /// 受取と返却に動くときは [soon] で足り、手元の全体を見るときは [all] で足りる。既定が絞り込み
 /// だと、開いた直後に予約中の本が見えず、予約が記録されていないように読める。
+///
+/// **[borrowed] は貸出中だけを通す**（2026-10-21）。取置中は入れない — 手元にある本の全体を、
+/// 期限の遠いものまで含めて見るための絞り込みで、[soon] の窓では見えない本を補う。
 ///
 /// 期限切れ専用のフィルタは**置かない。** 下限の無い [LendingFilter.soon] に必ず入るので、
 /// 絞り込みを増やさずに気付ける。
@@ -65,6 +68,9 @@ enum LendingFilter {
   /// 受取に行く本と、返却が間近の本。**取置中は全件、貸出中は基準日から [soonDays] 日以内**
   /// （期限切れ含む。下限を置かない）。週末に開いて、来週中の読書と受取を決めるための窓である。
   soon('受取と返却間近'),
+
+  /// 手元にある本。**状態が貸出中の行だけで、期限を問わない。**
+  borrowed('貸出中'),
 
   reserved('予約中');
 
@@ -134,6 +140,7 @@ bool isOverdue(LoanReportItem item) => item.urgency == 'overdue';
 bool matchesFilter(LoanReportItem item, LendingFilter filter, String limit) =>
     switch (filter) {
       LendingFilter.soon => isPickupOrDueSoon(item, limit),
+      LendingFilter.borrowed => item.status == 'borrowed',
       LendingFilter.reserved => item.status == 'reserved',
       LendingFilter.all => true,
     };

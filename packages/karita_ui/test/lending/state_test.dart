@@ -130,6 +130,7 @@ void main() {
       // デモ: 予約中7・取置中2・貸出中4（5区ぶん）。
       expect(state().countFor(LendingFilter.all), equals(13));
       expect(state().countFor(LendingFilter.reserved), equals(7));
+      expect(state().countFor(LendingFilter.borrowed), equals(4));
       expect(
         state().countFor(LendingFilter.soon),
         lessThanOrEqualTo(6),
@@ -137,10 +138,11 @@ void main() {
       );
     });
 
-    test('フィルタは 全件・受取と返却間近・予約中 の3つで、既定は全件（2026-10-15）', () {
+    test('フィルタは 全件・受取と返却間近・貸出中・予約中 の4つで、既定は全件（2026-10-21）', () {
       expect(LendingFilter.values, [
         LendingFilter.all,
         LendingFilter.soon,
+        LendingFilter.borrowed,
         LendingFilter.reserved,
       ]);
       expect(state().filter, LendingFilter.all, reason: '開いた直後に予約中の本も見える');
