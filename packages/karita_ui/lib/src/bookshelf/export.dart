@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:karita_app/karita_app.dart';
 import '../composition.dart';
+import 'shared.dart';
 
 class BookshelfExportButton extends ConsumerStatefulWidget {
   const BookshelfExportButton({super.key});
@@ -12,11 +13,11 @@ class BookshelfExportButton extends ConsumerStatefulWidget {
 class _ExportButtonState extends ConsumerState<BookshelfExportButton> {
   bool busy = false;
   @override
-  Widget build(BuildContext context) => TextButton.icon(
+  Widget build(BuildContext context) => TextButton(
     key: const ValueKey('shelf.export'),
+    style: shelfActionButtonStyle(ref),
     onPressed: busy ? null : _open,
-    icon: const Icon(Icons.file_download_outlined),
-    label: const Text('エクスポート'),
+    child: const Text('エクスポート'),
   );
 
   Future<void> _open() async {

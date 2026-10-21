@@ -49,23 +49,29 @@ class CheckHoldingsButton extends ConsumerWidget {
       spacing: 8,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        TextButton.icon(
+        TextButton(
           key: const ValueKey('shelf.holdings.check'),
-          style: shelfButtonStyle(ref),
-          icon: run.running
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.local_library_outlined),
-          label: Text(run.running ? '確認中…' : '蔵書を確認'),
+          style: shelfActionButtonStyle(ref),
           // **走っている間は押せない。** 二重に走らせると枠を二重に使う。
           onPressed: run.running || wanted.isEmpty
               ? null
               : () => unawaited(
                   ref.read(shelfHoldingsProvider.notifier).run(wanted),
                 ),
+          child: run.running
+              ? const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    SizedBox(width: 6),
+                    Text('確認中…'),
+                  ],
+                )
+              : const Text('蔵書を確認'),
         ),
         if (notice.isNotEmpty)
           Text(

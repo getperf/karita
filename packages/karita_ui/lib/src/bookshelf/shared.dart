@@ -19,6 +19,12 @@ ButtonStyle shelfButtonStyle(WidgetRef ref) => TextButton.styleFrom(
   minimumSize: Size(44, ref.watch(densityProvider).control),
 );
 
+/// Header actions keep normal text and touch height while using less width.
+ButtonStyle shelfActionButtonStyle(WidgetRef ref) => TextButton.styleFrom(
+  padding: const EdgeInsets.symmetric(horizontal: 8),
+  minimumSize: Size(44, ref.watch(densityProvider).control),
+);
+
 Map<String, LibrarySystem> shelfLibraries(WidgetRef ref) {
   try {
     return ref.watch(librariesProvider);

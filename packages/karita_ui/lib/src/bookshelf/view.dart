@@ -265,13 +265,12 @@ class _ShelfSessionState extends ConsumerState<_ShelfSession> {
                       ],
                     ),
                   Wrap(
-                    spacing: 8,
+                    spacing: 4,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      TextButton.icon(
+                      TextButton(
                         key: const ValueKey('shelf.add'),
-                        icon: const Icon(Icons.add),
-                        label: const Text('本を追加'),
+                        style: shelfActionButtonStyle(ref),
                         onPressed: () {
                           ref
                               .read(reservationProvider.notifier)
@@ -280,6 +279,7 @@ class _ShelfSessionState extends ConsumerState<_ShelfSession> {
                               .read(currentTabProvider.notifier)
                               .select(ShellTab.reserve);
                         },
+                        child: const Text('本を追加'),
                       ),
                       // 蔵書は押されたときだけ照会する。**描画・タブ入場では始めない。**
                       CheckHoldingsButton(

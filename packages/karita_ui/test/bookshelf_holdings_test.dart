@@ -125,6 +125,7 @@ void main() {
     bool usable = true,
     Size size = const Size(480, 1000),
     double scale = 1,
+    Density? density,
   }) async {
     await tester.binding.setSurfaceSize(size);
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -133,6 +134,7 @@ void main() {
     final c = ProviderContainer(
       overrides: [
         compositionProvider.overrideWithValue(app),
+        if (density != null) densityProvider.overrideWithValue(density),
         holdingsLookupProvider.overrideWithValue(resolved),
       ],
     );
@@ -184,14 +186,27 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('export is directly to the right of holdings in the action row', (tester) async {
-    await pump(tester, size: const Size(900, 1000));
-    final holdings = tester.getRect(button);
-    final export = tester.getRect(find.byKey(const ValueKey('shelf.export')));
-    expect(export.left, greaterThanOrEqualTo(holdings.right));
-    expect(export.center.dy, closeTo(holdings.center.dy, 1));
-    expect(export.top, greaterThan(tester.getRect(find.byKey(const ValueKey('shelf.search'))).bottom));
-  });
+  for (final width in [320.0, 360.0, 411.0, 900.0]) {
+    testWidgets('header actions fit one row at width $width', (tester) async {
+      await pump(
+        tester,
+        size: Size(width, 1000),
+        density: const Density(PointerKind.touch),
+      );
+      final add = tester.getRect(find.byKey(const ValueKey('shelf.add')));
+      final holdings = tester.getRect(button);
+      final export = tester.getRect(find.byKey(const ValueKey('shelf.export')));
+      expect(holdings.left, greaterThanOrEqualTo(add.right));
+      expect(export.left, greaterThanOrEqualTo(holdings.right));
+      expect(holdings.center.dy, closeTo(add.center.dy, 1));
+      expect(export.center.dy, closeTo(add.center.dy, 1));
+      expect(export.right, lessThanOrEqualTo(width));
+      for (final rect in [add, holdings, export]) {
+        expect(rect.height, greaterThanOrEqualTo(44));
+      }
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   group('始める契機', () {
     testWidgets('**描画では照会しない。** 押す前の行に蔵書の語は出ない', (tester) async {
