@@ -27,11 +27,32 @@ class AndroidAccessTokenProvider implements AccessTokenProvider {
   /// 直近に配った access token。[clearToken] に渡すためだけに持つ。
   String? _lastAccessToken;
 
+  /// 進行中の [authorize]。**画面が閉じるまで、無音の経路を走らせない。**
+  ///
+  /// iOS の Google Sign-In SDK は進行中の操作を1つしか持たない。アカウント選択の画面を
+  /// 出している間に無音の復元が来ると、SDK の完了先がそちらへ置き換わり、**画面の側の完了が
+  /// 呼ばれなくなる** — ［サインイン］が進行中のまま戻らない（2026-10-22、iOS シミュレーターで
+  /// 実測）。周期の同期や状態の再読込は、ここで待たせる。
+  Future<void>? _authorizing;
+
+  /// [_authorizing] が終わるまで待つ。**失敗は [authorize] の呼び手が受ける**ので、ここでは
+  /// 握るだけにする。
+  Future<void> _settled() async {
+    final pending = _authorizing;
+    if (pending == null) return;
+    try {
+      await pending;
+    } on Object {
+      // 上の理由で握る。
+    }
+  }
+
   AndroidAccessTokenProvider(this.client);
 
   @override
   Future<String> accessToken({bool forceRefresh = false}) async {
     await client.initialize();
+    await _settled();
 
     // **[forceRefresh] の意味が Windows と反転する。** Windows は refresh token で取り直すが、
     // Android に取り直す口は無い。あるのは「いま持っているものを捨てる」だけで、捨てた後に
@@ -57,7 +78,12 @@ class AndroidAccessTokenProvider implements AccessTokenProvider {
   /// **ここだけが画面を出す。** 利用者が明示した操作（harness の [サインイン]）から呼ぶ。
   ///
   /// 無音で取れるならそれを使う。**初回の同意を二度求めない。**
-  Future<void> authorize() async {
+  ///
+  /// **重ねて押されても画面は1つである。** 進行中なら同じ完了を返す。
+  Future<void> authorize() =>
+      _authorizing ??= _authorize().whenComplete(() => _authorizing = null);
+
+  Future<void> _authorize() async {
     await client.initialize();
     final silent = await client.tokenForScopes(const <String>[appDataScope]);
     _lastAccessToken =
@@ -80,6 +106,7 @@ class AndroidAccessTokenProvider implements AccessTokenProvider {
   /// harness の状態タブが使う。access token を表示しない — 要るのは「あるか」だけである。
   Future<bool> authorized() async {
     await client.initialize();
+    await _settled();
     return await client.tokenForScopes(const <String>[appDataScope]) != null;
   }
 }

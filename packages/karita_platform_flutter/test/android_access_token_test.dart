@@ -5,6 +5,8 @@
 /// **固定しておかないと、P4b の「refresh 不能時の `blocked_auth`」が実機で初めて壊れる。**
 library;
 
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:karita_platform/karita_platform.dart';
 import 'package:karita_platform_flutter/karita_platform_flutter.dart';
@@ -18,11 +20,18 @@ class _FakeClient implements AndroidAuthorizationClient {
   /// `requestScopes` が返すもの。`null` なら、呼ばれること自体を赤にする。
   final String? interactive;
 
+  /// 渡せば `requestScopes` はこれが完了するまで戻らない。**画面を出している間**を作る。
+  final Completer<String>? pendingInteractive;
+
   final List<String> calls = <String>[];
   int _initializeCount = 0;
   int _silentIndex = 0;
 
-  _FakeClient({required this.silent, this.interactive});
+  _FakeClient({
+    required this.silent,
+    this.interactive,
+    this.pendingInteractive,
+  });
 
   int get initializeCount => _initializeCount;
 
@@ -43,6 +52,8 @@ class _FakeClient implements AndroidAuthorizationClient {
   Future<String> requestScopes(List<String> scopes) async {
     expect(scopes, <String>[appDataScope]);
     calls.add('requestScopes');
+    final pending = pendingInteractive;
+    if (pending != null) return pending.future;
     final token = interactive;
     if (token == null) {
       fail('画面を出す requestScopes が同期の経路から呼ばれた');
@@ -172,6 +183,69 @@ void main() {
             .authorized(),
         isFalse,
       );
+    });
+  });
+
+  group('画面を出している間', () {
+    // iOS の Google Sign-In SDK は進行中の操作を1つしか持たない。画面の途中で無音の復元が
+    // 来ると、画面の側の完了が呼ばれなくなる（2026-10-22、iOS シミュレーターで実測）。
+    test('無音の経路は、画面が閉じるまで client を呼ばない', () async {
+      final screen = Completer<String>();
+      final client = _FakeClient(
+        silent: <String?>[null, 'at-2', 'at-2'],
+        pendingInteractive: screen,
+      );
+      final provider = AndroidAccessTokenProvider(client);
+
+      final signingIn = provider.authorize();
+      await pumpEventQueue();
+      final present = provider.authorized();
+      final token = provider.accessToken();
+      await pumpEventQueue();
+      expect(
+        client.calls.where((c) => c == 'tokenForScopes'),
+        hasLength(1),
+        reason: '画面の前の1回だけ。画面の途中で無音の経路を走らせない',
+      );
+
+      screen.complete('at-1');
+      await signingIn;
+      expect(await present, isTrue);
+      expect(await token, 'at-2');
+    });
+
+    test('重ねて押しても画面は1つである', () async {
+      final screen = Completer<String>();
+      final client = _FakeClient(
+        silent: <String?>[null],
+        pendingInteractive: screen,
+      );
+      final provider = AndroidAccessTokenProvider(client);
+
+      final first = provider.authorize();
+      final second = provider.authorize();
+      await pumpEventQueue();
+      screen.complete('at-1');
+      await Future.wait([first, second]);
+
+      expect(client.calls.where((c) => c == 'requestScopes'), hasLength(1));
+    });
+
+    test('画面が失敗しても、待っていた無音の経路は進む', () async {
+      final screen = Completer<String>();
+      final client = _FakeClient(
+        silent: <String?>[null, null],
+        pendingInteractive: screen,
+      );
+      final provider = AndroidAccessTokenProvider(client);
+
+      final signingIn = provider.authorize();
+      await pumpEventQueue();
+      final present = provider.authorized();
+      screen.completeError(StateError('canceled'));
+
+      await expectLater(signingIn, throwsStateError);
+      expect(await present, isFalse);
     });
   });
 }
