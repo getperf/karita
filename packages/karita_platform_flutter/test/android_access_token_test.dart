@@ -65,6 +65,11 @@ class _FakeClient implements AndroidAuthorizationClient {
   Future<void> clearToken(String accessToken) async {
     calls.add('clearToken($accessToken)');
   }
+
+  @override
+  Future<void> signOut() async {
+    calls.add('signOut');
+  }
 }
 
 void main() {
@@ -246,6 +251,38 @@ void main() {
 
       await expectLater(signingIn, throwsStateError);
       expect(await present, isFalse);
+    });
+  });
+
+  group('signOut', () {
+    test('SDK のサインインを消す。画面は出さない', () async {
+      final client = _FakeClient(silent: <String?>[]);
+      final provider = AndroidAccessTokenProvider(client);
+
+      await provider.signOut();
+
+      expect(client.calls, <String>['initialize', 'signOut']);
+    });
+
+    test('画面を出している間は、閉じるまで消さない', () async {
+      // 画面の途中で SDK を触ると、画面の側の完了が呼ばれなくなる（無音の経路と同じ理由）。
+      final screen = Completer<String>();
+      final client = _FakeClient(
+        silent: <String?>[null],
+        pendingInteractive: screen,
+      );
+      final provider = AndroidAccessTokenProvider(client);
+
+      final signingIn = provider.authorize();
+      await pumpEventQueue();
+      final signingOut = provider.signOut();
+      await pumpEventQueue();
+      expect(client.calls, isNot(contains('signOut')));
+
+      screen.complete('at-1');
+      await signingIn;
+      await signingOut;
+      expect(client.calls.last, 'signOut');
     });
   });
 }

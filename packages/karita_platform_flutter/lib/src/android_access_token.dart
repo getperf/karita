@@ -101,6 +101,18 @@ class AndroidAccessTokenProvider implements AccessTokenProvider {
     await client.clearToken(token);
   }
 
+  /// SDK が端末に持つサインインを消す。**iOS の［サインアウト］である。**
+  ///
+  /// Windows の［サインアウト］と同じく「この端末の接続の解除」までで、Google の grant は
+  /// 残る。次の [accessToken] は無音で取れずに投げ、outbox は `blocked_auth` へ落ちる。
+  /// **Android では接続が切れない**（[AndroidAuthorizationClient.signOut]）。
+  Future<void> signOut() async {
+    await client.initialize();
+    await _settled();
+    _lastAccessToken = null;
+    await client.signOut();
+  }
+
   /// 無音で取れるかどうかだけを返す。**値は出さない。**
   ///
   /// harness の状態タブが使う。access token を表示しない — 要るのは「あるか」だけである。

@@ -50,24 +50,38 @@ class Authorization {
   });
 }
 
-Authorization androidAuth(AppPaths paths) =>
-    _signInSdkAuth(paths, kind: 'play-services-authorization-api');
+Authorization androidAuth(AppPaths paths) => _signInSdkAuth(
+  paths,
+  kind: 'play-services-authorization-api',
+  signOut: (provider) => provider.clearLocalState,
+);
 
 /// iOS の認可。**Android と同じ口に乗る。** grant を持つのは Google Sign-In SDK（Keychain）で、
 /// 端末のファイルはトークンを持たない。`google_sign_in` の Authorization API が両方を包む。
 ///
 /// クライアント ID は `Info.plist` の `GIDClientID` から SDK が読む。**ここでは渡さない。**
-Authorization iosAuth(AppPaths paths) =>
-    _signInSdkAuth(paths, kind: 'google-sign-in-ios');
+///
+/// **［サインアウト］だけが Android と違う。** SDK が Keychain に持つサインインを消せるので、
+/// Windows と同じ「この端末の接続の解除」になる（Android は消しても無音で取り直される）。
+Authorization iosAuth(AppPaths paths) => _signInSdkAuth(
+  paths,
+  kind: 'google-sign-in-ios',
+  signOut: (provider) => provider.signOut,
+);
 
-Authorization _signInSdkAuth(AppPaths paths, {required String kind}) {
+Authorization _signInSdkAuth(
+  AppPaths paths, {
+  required String kind,
+  required Future<void> Function() Function(AndroidAccessTokenProvider)
+  signOut,
+}) {
   final provider = AndroidAccessTokenProvider(
     PlayServicesAuthorizationClient(),
   );
   return Authorization(
     tokens: provider,
     signIn: provider.authorize,
-    signOut: provider.clearLocalState,
+    signOut: signOut(provider),
     // **無音で取れるかを訊く。** 画面は出さない（`AndroidEnvironmentDoctor` と同じ口）。
     authorized: provider.authorized,
     kind: kind,
