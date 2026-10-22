@@ -254,7 +254,8 @@ class Composition {
     void Function()? disposeLedger,
   }) : _exportDelivery =
            exportDelivery ??
-           (Platform.isAndroid
+           // iOS も共有シートで渡す。`file_selector` の保存ダイアログは iOS に無い。
+           (Platform.isAndroid || Platform.isIOS
                ? const AndroidExportDelivery()
                : const WindowsExportDelivery()),
        _settings = settings,

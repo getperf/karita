@@ -12,7 +12,8 @@
 ///
 /// - **Android の認可** — Play services の Authorization API で `drive.appdata` を取る。
 ///   refresh token は無い。[AndroidAccessTokenProvider]
-/// - **Android の既定パス** — `getApplicationSupportDirectory()`。[AndroidAppPaths]
+/// - **Android・iOS の既定パス** — `getApplicationSupportDirectory()`。[AndroidAppPaths]・
+///   [IosAppPaths]
 /// - **Android のネイティブ SQLite** — `sqlite3_flutter_libs`。依存として運ぶだけで、
 ///   ここに書くコードは無い。Android には dlopen できるシステム sqlite が無く、Windows の
 ///   `winsqlite3.dll` に当たるものが無い
@@ -30,6 +31,7 @@ export 'src/app_links_share_inbox.dart';
 export 'src/authorization_client.dart';
 export 'src/channel_share_inbox.dart';
 export 'src/external_browser.dart';
+export 'src/ios_app_paths.dart';
 
 export 'src/windows_export_delivery.dart';
 export 'src/android_export_delivery.dart';

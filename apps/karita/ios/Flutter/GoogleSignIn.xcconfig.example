@@ -1,0 +1,9 @@
+// iOS の OAuth クライアント。**このファイルを GoogleSignIn.xcconfig へ複製して値を入れる。**
+//
+// GoogleSignIn.xcconfig は .gitignore で除外する。ここには値を書かない。
+// Google Cloud Console で作る iOS クライアントの ID と、その逆順（URL スキーム）を入れる。
+// Bundle ID は net.getperf.karita。シークレットは無い。
+//
+// 未設定でもビルドとデモは通る。本番の［サインイン］だけが使えない。
+GOOGLE_IOS_CLIENT_ID = 000000000000-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com
+GOOGLE_IOS_REVERSED_CLIENT_ID = com.googleusercontent.apps.000000000000-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

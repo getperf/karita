@@ -50,7 +50,17 @@ class Authorization {
   });
 }
 
-Authorization androidAuth(AppPaths paths) {
+Authorization androidAuth(AppPaths paths) =>
+    _signInSdkAuth(paths, kind: 'play-services-authorization-api');
+
+/// iOS の認可。**Android と同じ口に乗る。** grant を持つのは Google Sign-In SDK（Keychain）で、
+/// 端末のファイルはトークンを持たない。`google_sign_in` の Authorization API が両方を包む。
+///
+/// クライアント ID は `Info.plist` の `GIDClientID` から SDK が読む。**ここでは渡さない。**
+Authorization iosAuth(AppPaths paths) =>
+    _signInSdkAuth(paths, kind: 'google-sign-in-ios');
+
+Authorization _signInSdkAuth(AppPaths paths, {required String kind}) {
   final provider = AndroidAccessTokenProvider(
     PlayServicesAuthorizationClient(),
   );
@@ -60,7 +70,7 @@ Authorization androidAuth(AppPaths paths) {
     signOut: provider.clearLocalState,
     // **無音で取れるかを訊く。** 画面は出さない（`AndroidEnvironmentDoctor` と同じ口）。
     authorized: provider.authorized,
-    kind: 'play-services-authorization-api',
+    kind: kind,
     doctor: AndroidEnvironmentDoctor(paths: paths, tokens: provider),
   );
 }
@@ -125,7 +135,7 @@ Authorization demoAuth(AppPaths paths) => Authorization(
 /// そちらだけ `url_launcher` を入れた（2026-09-18）。Android の認可は Play services なので、
 /// この分岐の読み手は**図書館サイトを開く操作だけ**である。
 Future<void> openSystemBrowser(Uri url) async {
-  if (Platform.isAndroid) {
+  if (Platform.isAndroid || Platform.isIOS) {
     await openInExternalBrowser(url);
     return;
   }

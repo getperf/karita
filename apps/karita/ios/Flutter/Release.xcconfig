@@ -1,0 +1,3 @@
+#include "Generated.xcconfig"
+// iOS の OAuth クライアント。commit しない（GoogleSignIn.xcconfig.example を複製して値を入れる）。
+#include? "GoogleSignIn.xcconfig"
