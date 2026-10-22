@@ -46,12 +46,12 @@ void main() {
   });
 
   group('種（KARITA_SEED）', () {
-    AppMode seeded({bool releaseMode = false, bool android = false}) =>
+    AppMode seeded({bool releaseMode = false, bool mobile = false}) =>
         AppMode.resolve(
           demo: 'off',
           seed: 'standard',
           releaseMode: releaseMode,
-          android: android,
+          mobile: mobile,
         );
 
     test('デモとは直交する。本番のまま種だけが立つ', () {
@@ -65,10 +65,10 @@ void main() {
       expect(mode.autoRefreshAllowed, isTrue);
     });
 
-    test('ガード① Android では立たない（データ領域を分けられない）', () {
+    test('ガード① Android・iOS では立たない（データ領域を分けられない）', () {
       // **`KARITA_HOME` を渡す経路が無く、アプリの領域は1つしかない。** 種を撒けば実データの
-      // 台帳を消すことになるので、Android は同期で受ける側に固定する。
-      expect(() => seeded(android: true), throwsStateError);
+      // 台帳を消すことになるので、Android・iOS は同期で受ける側に固定する。
+      expect(() => seeded(mobile: true), throwsStateError);
     });
 
     test('ガード② release ビルドでは受け付けない', () {
@@ -113,7 +113,7 @@ void main() {
         demo: 'memory',
         seed: 'standard',
         releaseMode: false,
-        android: false,
+        mobile: false,
       );
       expect(mode.seed, 'standard');
       expect(mode.seedMode, isFalse);

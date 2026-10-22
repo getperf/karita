@@ -24,7 +24,7 @@ extension CompositionAccount on Composition {
       state: state,
       kind: auth.kind,
       available: mode.gate.open,
-      canSwitchAccount: Platform.isAndroid,
+      canSwitchAccount: Platform.isAndroid || Platform.isIOS,
     );
   }
 
@@ -41,7 +41,7 @@ extension CompositionAccount on Composition {
   /// アカウント管理ページへ出す（`非公開資料:production-wiring-auth-backup-sync.md`
   /// 「切替の導線」）。
   ///
-  /// **Android の分である。** Windows はサインインのたびにブラウザでアカウント選択が出るので
+  /// **Android・iOS の分である。** Windows はサインインのたびにブラウザでアカウント選択が出るので
   /// この導線を要らない — 画面のどこにボタンを出すかは呼び出し側（Android の判定）が決める。
   Future<void> openAccountSwitch() async {
     _requireOpen();

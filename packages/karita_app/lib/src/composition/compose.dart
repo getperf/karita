@@ -52,6 +52,8 @@ Future<Composition> compose({
       ? demoAuth(paths)
       : Platform.isAndroid
       ? androidAuth(paths)
+      : Platform.isIOS
+      ? iosAuth(paths)
       : windowsAuth(paths);
   final client = RestDriveClient(tokens: auth.tokens);
   final store = DriveBackupStore(client);

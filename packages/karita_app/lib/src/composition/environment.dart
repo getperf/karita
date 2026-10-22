@@ -19,6 +19,7 @@ final Logger _log = Logger('karita.app');
 /// P5a で `workmanager` ごと削除）が、**[boot] がログより先に呼ぶのでこの関数は残る。**
 Future<AppPaths> appPaths({AppMode? mode}) async {
   if (Platform.isAndroid) return AndroidAppPaths.resolve();
+  if (Platform.isIOS) return IosAppPaths.resolve();
   final explicit = Platform.environment[homeEnvVar];
   // **種モードには専用の既定がある**（2026-09-23）。`KARITA_HOME` を明示すればそちらが勝つ。
   if ((mode?.seedMode ?? false) &&

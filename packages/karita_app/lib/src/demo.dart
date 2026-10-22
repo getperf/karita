@@ -128,7 +128,7 @@ class AppMode {
     String seed = defineSeed,
     bool releaseMode = kReleaseMode,
     // **既定は `Platform` から採る**（定数にできないので `null` を挟む）。試験だけが差し替える。
-    bool? android,
+    bool? mobile,
   }) {
     final wanted = demo.trim().toLowerCase();
     DemoMode? mode = wanted.isEmpty ? DemoMode.off : null;
@@ -141,11 +141,11 @@ class AppMode {
 
     final scenario = seed.trim();
     if (scenario.isEmpty) return AppMode(mode);
-    // ① Android では使えない。**データ領域を分ける手段が無い** — `KARITA_HOME` を渡す経路が
+    // ① Android・iOS では使えない。**データ領域を分ける手段が無い** — `KARITA_HOME` を渡す経路が
     // 無く、アプリの領域は1つしかないので、種を撒けば実データの台帳を消すことになる。
     // 代わりに同期で流す（`非公開資料:p5b-verification-mode.md`「Android では種を使わない」）。
-    if (android ?? Platform.isAndroid) {
-      throw StateError('KARITA_SEED は Android では使えない（同期で流す）');
+    if (mobile ?? (Platform.isAndroid || Platform.isIOS)) {
+      throw StateError('KARITA_SEED は Android・iOS では使えない（同期で流す）');
     }
     // ② ①の二重化。**配布物に種が焼けること自体が別の事故である。**
     if (releaseMode) {
