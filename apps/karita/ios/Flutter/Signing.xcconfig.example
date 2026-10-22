@@ -1,0 +1,7 @@
+// 署名のチーム。**このファイルを Signing.xcconfig へ複製して値を入れる。**
+//
+// Signing.xcconfig は .gitignore で除外する。ここには値を書かない。
+// Apple Developer のチーム ID（10桁）を入れる。Runner と ShareExtension の両方に効く。
+//
+// 未設定でもシミュレーター向けと --no-codesign のビルドは通る。
+DEVELOPMENT_TEAM = XXXXXXXXXX
