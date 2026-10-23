@@ -1,7 +1,7 @@
 name: karita
 description: 図書館で借りる本と自分の本をまとめて管理し、Google Driveで端末間同期できるアプリ。
 publish_to: none
-version: 1.0.4
+version: 1.0.4+1
 
 environment:
   sdk: ^3.10.0
