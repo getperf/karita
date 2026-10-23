@@ -11,7 +11,35 @@ library;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:karita_ui/karita_ui.dart';
+
+/// ストア用のスクリーンショットを撮るビルドか。**帯も DEBUG の帯も出さない。**
+///
+/// シミュレーターは debug ビルドしか動かないので、`--dart-define=KARITA_SCREENSHOT=true` で消す。
+const bool defineScreenshot = bool.fromEnvironment('KARITA_SCREENSHOT');
+
+/// 撮影のときに開く行き先（[ShellTab] の名前）。**撮影のビルドでだけ効く。**
+///
+/// シミュレーターはコマンドからタップできないので、行き先ごとにこれを変えて起動し直す。
+/// 起動は常に予約という決定（`currentTabProvider`）は、撮影以外では変えない。
+const String defineScreenshotTab = String.fromEnvironment('KARITA_SCREENSHOT_TAB');
+
+/// [defineScreenshotTab] を起動時の行き先にする override。撮影でなければ空である。
+List<Override> screenshotOverrides() {
+  if (!defineScreenshot || defineScreenshotTab.isEmpty) return const [];
+  final tab = ShellTab.values.byName(defineScreenshotTab);
+  return [currentTabProvider.overrideWith(() => _ScreenshotTab(tab))];
+}
+
+class _ScreenshotTab extends CurrentTab {
+  final ShellTab initial;
+
+  _ScreenshotTab(this.initial);
+
+  @override
+  ShellTab build() => initial;
+}
 
 /// [child] の上に読み取り帯を重ねる。**release では [child] をそのまま返す。**
 ///
@@ -19,7 +47,7 @@ import 'package:karita_ui/karita_ui.dart';
 /// 覆うので、ダイアログを開いている間も数字が見える。
 Widget withDebugReadout(Widget? child) {
   final body = child ?? const SizedBox.shrink();
-  if (!kDebugMode) return body;
+  if (!kDebugMode || defineScreenshot) return body;
   return Stack(
     children: [body, const Positioned(top: 0, right: 0, child: _Readout())],
   );

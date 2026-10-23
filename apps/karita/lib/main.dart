@@ -60,10 +60,14 @@ class _KaritaAppState extends State<KaritaApp> {
         );
       }
       return ProviderScope(
-        overrides: [compositionProvider.overrideWithValue(composition)],
+        overrides: [
+          compositionProvider.overrideWithValue(composition),
+          ...screenshotOverrides(),
+        ],
         child: Consumer(
           builder: (context, ref, _) => MaterialApp(
             title: 'karita',
+            debugShowCheckedModeBanner: !defineScreenshot,
             navigatorKey: _navigatorKey,
             theme: karitaTheme(Brightness.light),
             darkTheme: karitaTheme(Brightness.dark),
