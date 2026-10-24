@@ -22,33 +22,56 @@ final class ShareViewController: UIViewController {
     }
   }
 
-  /// 最初の添付から URL を取る。Safari は URL、他のアプリは本文に URL を含めて渡すことがある。
+  /// 共有されたページの URL を1件選ぶ。Safari は URL、他のアプリは本文に URL を含めて渡すことがある。
+  ///
+  /// **URL の添付を本文より先に見て、App Store のリンクは外す。** Chrome はページを開いていない
+  /// 状態の共有で「Chrome をダウンロード」の本文と App Store のリンクだけを渡し、それが karita に
+  /// 届くと「何をしますか？」になった（2026-10-24、実機 iOS 27）。
   private func sharedURL() async -> URL? {
     let items = extensionContext?.inputItems.compactMap { $0 as? NSExtensionItem } ?? []
+    var linked: [URL] = []
+    var written: [URL] = []
     for provider in items.flatMap({ $0.attachments ?? [] }) {
-      if provider.hasItemConformingToTypeIdentifier(UTType.url.identifier),
-        let url = try? await provider.loadItem(forTypeIdentifier: UTType.url.identifier) as? URL,
-        url.scheme == "http" || url.scheme == "https"
-      {
-        return url
-      }
-      if provider.hasItemConformingToTypeIdentifier(UTType.plainText.identifier),
-        let text = try? await provider.loadItem(forTypeIdentifier: UTType.plainText.identifier)
-          as? String,
-        let url = firstWebURL(in: text)
-      {
-        return url
-      }
+      linked += await urls(in: provider, as: .url)
+      written += await urls(in: provider, as: .plainText)
     }
-    return nil
+    for item in items {
+      written += webURLs(in: item.attributedContentText?.string ?? "")
+    }
+    return (linked + written).first { isWeb($0) && !isAppStore($0) }
   }
 
-  private func firstWebURL(in text: String) -> URL? {
+  /// 添付の中身を読む。**型の宣言と中身が一致するとは限らない** — URL の添付が `Data` や
+  /// 文字列で来ることがあるので、どれでも URL を取り出す。
+  private func urls(in provider: NSItemProvider, as type: UTType) async -> [URL] {
+    guard provider.hasItemConformingToTypeIdentifier(type.identifier),
+      let item = try? await provider.loadItem(forTypeIdentifier: type.identifier)
+    else { return [] }
+    switch item {
+    case let url as URL:
+      return [url]
+    case let data as Data:
+      if let url = URL(dataRepresentation: data, relativeTo: nil), isWeb(url) { return [url] }
+      return webURLs(in: String(data: data, encoding: .utf8) ?? "")
+    case let text as String:
+      return webURLs(in: text)
+    case let text as NSAttributedString:
+      return webURLs(in: text.string)
+    default:
+      return []
+    }
+  }
+
+  private func webURLs(in text: String) -> [URL] {
     let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
     let range = NSRange(text.startIndex..., in: text)
-    return detector?.matches(in: text, range: range)
-      .compactMap(\.url)
-      .first { $0.scheme == "http" || $0.scheme == "https" }
+    return detector?.matches(in: text, range: range).compactMap(\.url) ?? []
+  }
+
+  private func isWeb(_ url: URL) -> Bool { url.scheme == "http" || url.scheme == "https" }
+
+  private func isAppStore(_ url: URL) -> Bool {
+    ["apps.apple.com", "itunes.apple.com"].contains(url.host?.lowercased() ?? "")
   }
 
   private func deliveryURL(for shared: URL) -> URL? {
