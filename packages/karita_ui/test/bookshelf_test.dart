@@ -187,7 +187,7 @@ void main() {
     expect(c.read(shelfOpenRequestProvider), isNull);
   });
 
-  testWidgets('narrow list search, state change and rating-only save', (
+  testWidgets('narrow list search, state change and rating saves on tap', (
     tester,
   ) async {
     await pump(tester, size: const Size(360, 1000), scale: 1.3);
@@ -201,11 +201,15 @@ void main() {
     expect(find.text('本の記録'), findsOneWidget);
     await tap(tester, find.text('読んだにする'));
     await tap(tester, find.byTooltip('4点'));
-    await tap(tester, find.byKey(const ValueKey('shelf.save')));
+    // **評価は押した時点で保存し、本の記録に留まる**（2026-10-31）。
     expect(app.loadBookshelf(bookId: id).single.rating, 4);
-    // 保存は本棚へ戻し、結果は notice で出す。一覧は右端に評価を出す。
+    expect(find.text('本の記録'), findsOneWidget);
+    expect(find.widgetWithText(SnackBar, '評価を保存しました。'), findsOneWidget);
+    // 評価だけなら未保存の変更は無い。戻るときに確認を出さない。
+    await tap(tester, find.byKey(const ValueKey('shelf.back')));
+    expect(find.textContaining('破棄しますか'), findsNothing);
+    // 一覧は右端に評価を出す。
     expect(find.text('1冊'), findsOneWidget);
-    expect(find.widgetWithText(SnackBar, 'レビューを保存しました。'), findsOneWidget);
     expect(
       find.descendant(
         of: find.byKey(ValueKey('shelf.rating.$id')),
@@ -436,13 +440,74 @@ void main() {
       expect(app.loadBookshelf(bookId: id).single.review, '同期内容');
       expect(find.textContaining('別の端末でレビューが変更'), findsOneWidget);
       await tap(tester, find.byKey(const ValueKey('shelf.back')));
-      expect(find.text('保存していないレビューを破棄しますか？'), findsOneWidget);
+      expect(find.text('保存していないレビュー本文を破棄しますか？'), findsOneWidget);
       await tester.tap(find.text('やめる'));
       await tester.pumpAndSettle();
       expect(find.text('未保存の入力'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
+
+  group('評価は押した時点で保存する（2026-10-31）', () {
+    Future<void> openRecord(WidgetTester tester) async {
+      app.setShelfState(id, 'read');
+      await pump(tester, size: const Size(640, 1600));
+      await tester.enterText(find.byKey(const ValueKey('shelf.search')), 'abc');
+      await tester.pumpAndSettle();
+      await tap(tester, find.byKey(ValueKey('shelf.open.$id')));
+    }
+
+    testWidgets('本文の入力中に評価を保存しても、続けて本文を保存できる', (tester) async {
+      await openRecord(tester);
+      await tester.enterText(
+        find.byKey(const ValueKey('shelf.review')),
+        '入力中の本文',
+      );
+      await tap(tester, find.byTooltip('3点'));
+      final saved = app.loadBookshelf(bookId: id).single;
+      expect(saved.rating, 3);
+      expect(saved.review, '', reason: '入力途中の本文は書かない');
+      expect(find.text('入力中の本文'), findsOneWidget);
+
+      await tap(tester, find.byKey(const ValueKey('shelf.save')));
+      // **自分の評価の書込みを他端末の変更と取り違えない。**
+      expect(find.textContaining('別の端末でレビューが変更'), findsNothing);
+      final after = app.loadBookshelf(bookId: id).single;
+      expect(after.rating, 3);
+      expect(after.review, '入力中の本文');
+      expect(find.widgetWithText(SnackBar, 'レビュー本文を保存しました。'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('評価の解除もその場で保存する', (tester) async {
+      app.setShelfState(id, 'read');
+      app.saveBookReview(id, rating: 4, review: '', expectedRevision: '');
+      await pump(tester, size: const Size(640, 1600));
+      await tester.enterText(find.byKey(const ValueKey('shelf.search')), 'abc');
+      await tester.pumpAndSettle();
+      await tap(tester, find.byKey(ValueKey('shelf.open.$id')));
+      await tap(tester, find.text('評価を解除'));
+      expect(app.loadBookshelf(bookId: id).single.rating, isNull);
+      expect(find.widgetWithText(SnackBar, '評価を解除しました。'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('保存に失敗したら星を元へ戻す', (tester) async {
+      await openRecord(tester);
+      // 本文を入力中なので、他端末の更新で画面は読み直さない（版は古いまま）。
+      await tester.enterText(
+        find.byKey(const ValueKey('shelf.review')),
+        '入力中の本文',
+      );
+      app.saveBookReview(id, rating: 2, review: '同期内容', expectedRevision: '');
+      await tester.pumpAndSettle();
+      await tap(tester, find.byTooltip('5点'));
+      expect(find.textContaining('別の端末でレビューが変更'), findsOneWidget);
+      expect(app.loadBookshelf(bookId: id).single.rating, 2);
+      expect(find.text('5 / 5'), findsNothing, reason: '押した星を元へ戻す');
+      expect(tester.takeException(), isNull);
+    });
+  });
 
   testWidgets('add uses reservation and returns only after successful save', (
     tester,

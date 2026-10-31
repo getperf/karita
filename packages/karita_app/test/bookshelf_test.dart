@@ -105,30 +105,33 @@ void main() {
     },
   );
 
-  test('manual read survives return correction; wanted coexists with a loan', () {
-    final loan = reserve();
-    // 手続き中でも本棚の指定は自由に変えられる（2026-09-21）。
-    app.setShelfState(book.id, 'removed');
-    app.setShelfState(book.id, 'wanted');
-    expect(row().state, 'wanted');
-    expect(row().activeStatuses, ['reserved']);
-    app.setShelfState(book.id, 'read');
-    app.updateLoan(loanId: loan, action: 'return');
-    app.updateLoan(loanId: loan, action: 'cancel');
-    expect(row().state, 'read');
-    expect(row().histories.single.manual, isTrue);
-    app.setShelfState(book.id, 'wanted');
-    expect(row().state, 'wanted');
-    expect(
-      () => app.saveBookReview(
-        book.id,
-        rating: 3,
-        review: '',
-        expectedRevision: '',
-      ),
-      throwsA(isA<ShelfIssue>()),
-    );
-  });
+  test(
+    'manual read survives return correction; wanted coexists with a loan',
+    () {
+      final loan = reserve();
+      // 手続き中でも本棚の指定は自由に変えられる（2026-09-21）。
+      app.setShelfState(book.id, 'removed');
+      app.setShelfState(book.id, 'wanted');
+      expect(row().state, 'wanted');
+      expect(row().activeStatuses, ['reserved']);
+      app.setShelfState(book.id, 'read');
+      app.updateLoan(loanId: loan, action: 'return');
+      app.updateLoan(loanId: loan, action: 'cancel');
+      expect(row().state, 'read');
+      expect(row().histories.single.manual, isTrue);
+      app.setShelfState(book.id, 'wanted');
+      expect(row().state, 'wanted');
+      expect(
+        () => app.saveBookReview(
+          book.id,
+          rating: 3,
+          review: '',
+          expectedRevision: '',
+        ),
+        throwsA(isA<ShelfIssue>()),
+      );
+    },
+  );
 
   test(
     'cancel keeps the shelf as it is; ratings and review deletion are independent',
@@ -167,6 +170,36 @@ void main() {
       expect(row().state, 'read');
     },
   );
+
+  test('保存は新しい版を返し、それで続けて保存できる（2026-10-31）', () {
+    // 本の記録は評価を押した時点で保存し、返った版で本文を保存する。
+    app.setShelfState(book.id, 'read');
+    final first = app.saveBookReview(
+      book.id,
+      rating: 3,
+      review: '',
+      expectedRevision: row().reviewRevision,
+    );
+    expect(first, row().reviewRevision);
+    final second = app.saveBookReview(
+      book.id,
+      rating: 3,
+      review: '本文',
+      expectedRevision: first,
+    );
+    expect(second, isNot(first));
+    expect(second, row().reviewRevision);
+    // 変化が無い保存は版を変えない。
+    expect(
+      app.saveBookReview(
+        book.id,
+        rating: 3,
+        review: '本文',
+        expectedRevision: second,
+      ),
+      second,
+    );
+  });
 
   test('failed shelf write rolls back book adoption and all emission tables', () {
     final before = {

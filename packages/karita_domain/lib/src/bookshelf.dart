@@ -266,7 +266,11 @@ class Bookshelf {
     );
   }
 
-  void saveReview(
+  /// レビュー（評価と本文）を保存し、**保存後の版を返す**（2026-10-31）。
+  ///
+  /// 画面は評価を押した時点で保存し、本文は入力を続ける。返した版を次の保存の
+  /// [expectedRevision] に使えば、自分の書込みを他端末の変更と取り違えない。
+  String saveReview(
     String bookId, {
     required int? rating,
     required String review,
@@ -289,7 +293,7 @@ class Bookshelf {
       );
     }
     if (books.single.rating == rating && books.single.review == review.trim()) {
-      return;
+      return expectedRevision;
     }
     context.emit(
       entityType: entityBookReview,
@@ -298,6 +302,9 @@ class Bookshelf {
       domainEventType: 'BookReviewSaved',
       aggregateType: entityBookReview,
       now: now,
+    );
+    return _revision(
+      context.aggregates.read(context.db, entityBookReview, id),
     );
   });
 }

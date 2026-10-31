@@ -4,8 +4,12 @@
 /// **蔵書は出さない**（2026-09-21）— ここは保存された記録の画面で、外から取ってきた観測を
 /// 混ぜると「記録された事実」に見える。
 ///
-/// 保存と除外は成功したら一覧へ戻り、結果は notice で出す。失敗はここに留まり、入力と
+/// 本文の保存と除外は成功したら一覧へ戻り、結果は notice で出す。失敗はここに留まり、入力と
 /// 本文のメッセージを残す。
+///
+/// **評価は押した時点で保存する**（2026-10-31。`screens/bookshelf.md` の同日の節）。評価だけを
+/// 付けて本文は空欄の使い方が多く、星のたびに保存を求めるのは不自然だった。台帳では評価と本文は
+/// 1件のレビューのままなので、評価は**保存済みの本文**と一緒に書き、入力途中の本文は書かない。
 library;
 
 import 'dart:async';
@@ -34,7 +38,9 @@ class _ShelfRecordState extends ConsumerState<ShelfRecord> {
   int? originalRating;
   bool busy = false;
   String message = '';
-  bool get dirty => review.text != originalText || rating != originalRating;
+
+  /// 未保存の変更。**本文だけを見る** — 評価は押した時点で保存している。
+  bool get dirty => review.text != originalText;
   @override
   void initState() {
     super.initState();
@@ -79,7 +85,7 @@ class _ShelfRecordState extends ConsumerState<ShelfRecord> {
       ) ??
       false;
   Future<bool> discard() async =>
-      !dirty || await confirm('保存していないレビューを破棄しますか？');
+      !dirty || await confirm('保存していないレビュー本文を破棄しますか？');
   Future<void> back() async {
     if (await discard() && mounted) widget.onBack();
   }
@@ -146,6 +152,47 @@ class _ShelfRecordState extends ConsumerState<ShelfRecord> {
     }
   }
 
+  /// 評価を押した。**その場で保存し、本の記録に留まる。**
+  ///
+  /// 本文は保存済みの値を書く（[originalText]）。返った版を [revision] にするので、続けて本文を
+  /// 保存しても自分の書込みを他端末の変更と取り違えない。失敗したら星を元へ戻す。
+  Future<void> rate(int? value) async {
+    if (busy || value == rating) return;
+    final before = rating;
+    setState(() => rating = value);
+    String? next;
+    await perform(
+      () => next = ref
+          .read(compositionProvider)
+          .saveBookReview(
+            widget.book.id,
+            rating: value,
+            review: originalText,
+            expectedRevision: revision,
+          ),
+    );
+    if (!mounted) return;
+    if (next == null) {
+      setState(() => rating = before);
+      return;
+    }
+    setState(() {
+      revision = next!;
+      originalRating = value;
+      // 評価の保存は本文の保存と違って画面に留まる。結果は notice だけで出す。
+      message = '';
+    });
+    ScaffoldMessenger.maybeOf(context)
+      ?..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(value == null ? '評価を解除しました。' : '評価を保存しました。'),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+  }
+
   Future<void> save() async {
     await perform(
       () => ref
@@ -157,7 +204,7 @@ class _ShelfRecordState extends ConsumerState<ShelfRecord> {
             expectedRevision: revision,
           ),
     );
-    if (mounted && message == '保存しました。') _leave('レビューを保存しました。');
+    if (mounted && message == '保存しました。') _leave('レビュー本文を保存しました。');
   }
 
   @override
@@ -264,7 +311,7 @@ class _ShelfRecordState extends ConsumerState<ShelfRecord> {
               for (var n = 1; n <= 5; n++)
                 IconButton(
                   tooltip: '$n点',
-                  onPressed: editable ? () => setState(() => rating = n) : null,
+                  onPressed: editable ? () => rate(n) : null,
                   icon: Icon(
                     rating != null && n <= rating!
                         ? Icons.star
@@ -272,9 +319,7 @@ class _ShelfRecordState extends ConsumerState<ShelfRecord> {
                   ),
                 ),
               TextButton(
-                onPressed: editable
-                    ? () => setState(() => rating = null)
-                    : null,
+                onPressed: editable && rating != null ? () => rate(null) : null,
                 child: const Text('評価を解除'),
               ),
             ],
@@ -313,7 +358,7 @@ class _ShelfRecordState extends ConsumerState<ShelfRecord> {
                 child: FilledButton(
                   key: const ValueKey('shelf.save'),
                   onPressed: editable ? save : null,
-                  child: const Text('レビューを保存'),
+                  child: const Text('レビュー本文を保存'),
                 ),
               ),
             ],

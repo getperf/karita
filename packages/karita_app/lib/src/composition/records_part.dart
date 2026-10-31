@@ -59,14 +59,15 @@ extension CompositionRecords on Composition {
     _syncAfterWrite('bookshelf.state');
   }
 
-  void saveBookReview(
+  /// 保存後のレビューの版を返す（`Bookshelf.saveReview`）。
+  String saveBookReview(
     String bookId, {
     required int? rating,
     required String review,
     required String expectedRevision,
   }) {
     _requireOpen();
-    Bookshelf(domain).saveReview(
+    final revision = Bookshelf(domain).saveReview(
       bookId,
       rating: rating,
       review: review,
@@ -75,6 +76,7 @@ extension CompositionRecords on Composition {
     );
     _notifyStatus();
     _syncAfterWrite('bookshelf.review');
+    return revision;
   }
 
   // --- 貸出し画面へ出す口 -------------------------------------------------
