@@ -50,6 +50,7 @@ export 'src/lending/state.dart';
 export 'src/lending/view.dart';
 export 'src/lending/wording.dart';
 export 'src/reservation/view.dart';
+export 'src/reservation/preview.dart';
 
 export 'src/bookshelf/holdings.dart';
 export 'src/bookshelf/state.dart';

@@ -12,6 +12,7 @@ import '../composition.dart';
 import '../density.dart';
 import '../libraries/state.dart';
 import '../shell/navigation.dart';
+import 'preview.dart';
 import 'state.dart';
 
 class ReservationView extends ConsumerStatefulWidget {
@@ -109,6 +110,14 @@ class _ReservationViewState extends ConsumerState<ReservationView> {
       decoration: const InputDecoration(labelText: '著者（任意）'),
     );
     final colors = Theme.of(context).colorScheme;
+    // **区の確認画面は予約画面の位置に出す**（`reservation-preview.md` §6）。Windows も
+    // スマホと同じ1画面で、横に並べたり重ねたりしない。入力欄の控えはこの State が持ち続ける。
+    if (state.previewSystem case final systemId? when draft != null) {
+      return ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: widget.contentMaxWidth),
+        child: ReservationPreview(systemId: systemId),
+      );
+    }
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: widget.contentMaxWidth),
       child: Column(
@@ -338,9 +347,11 @@ class _ReservationViewState extends ConsumerState<ReservationView> {
                         FilterChip(
                           label: Text(system.name),
                           selected: draft?.systems.contains(system.id) ?? false,
+                          // 選ぶときは区の確認画面を開き、外すときは移らない
+                          // （`reservation-preview.md` §2）。
                           onSelected: draft == null || state.saving
                               ? null
-                              : (_) => actions.select(system.id),
+                              : (_) => actions.choose(system.id),
                         ),
                     ],
                   ),
