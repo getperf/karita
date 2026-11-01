@@ -74,6 +74,11 @@ class PendingHandoffTriage extends _$PendingHandoffTriage {
   /// 受信の最終判定が届いた。**公開しているのは試験のためである。**
   void onTriage(HandoffTriage triage) {
     switch (triage) {
+      // **予約の確認画面から開いた館サイトを送り返したら、確認画面へ戻す**（2026-10-31）。
+      // 開き方は貸出しと同じなので判定も貸出しになるが、貸出しへ移ると予約の途中から外れる。
+      case LendingTriageCandidate(:final systemId)
+          when ref.read(reservationProvider).previewSystem == systemId:
+        ref.read(currentTabProvider.notifier).select(ShellTab.reserve);
       case LendingTriageCandidate(:final systemId):
         ref.read(lendingRouteProvider.notifier).onLendingCandidate(systemId);
       case MypageTriageCandidate(:final systemId, :final url):

@@ -444,6 +444,279 @@ void main() {
       expect(container.read(currentTabProvider), ShellTab.reserve);
       await settle(tester);
     });
+
+    group('区の確認画面（2026-10-31。reservation-preview.md）', () {
+      Finder chip(String systemId) => find.widgetWithText(
+        FilterChip,
+        container.read(librariesProvider)[systemId]!.name,
+      );
+
+      test('選ぶと開いてチェックを付け、外すときは開かない', () {
+        actions.receive(delivery(1, a));
+        actions.choose('Tokyo_Koto');
+        var state = container.read(reservationProvider);
+        expect(state.previewSystem, 'Tokyo_Koto');
+        expect(state.draft!.systems, {'Tokyo_Koto'});
+
+        actions.closePreview();
+        state = container.read(reservationProvider);
+        expect(state.previewSystem, isNull);
+        expect(state.draft!.systems, {'Tokyo_Koto'}, reason: '戻ってもチェックは残る');
+
+        actions.choose('Tokyo_Koto');
+        state = container.read(reservationProvider);
+        expect(state.previewSystem, isNull, reason: '外すときは画面を移らない');
+        expect(state.draft!.systems, isEmpty);
+      });
+
+      test('常用館が決まっていない区は開くが、チェックを付けない', () {
+        actions.receive(delivery(1, a));
+        actions.choose('Tokyo_Sumida');
+        final state = container.read(reservationProvider);
+        expect(state.previewSystem, 'Tokyo_Sumida');
+        expect(state.draft!.systems, isEmpty);
+      });
+
+      test('本を破棄したら閉じる', () {
+        actions.receive(delivery(1, a));
+        actions.choose('Tokyo_Koto');
+        actions.discard();
+        expect(container.read(reservationProvider).previewSystem, isNull);
+      });
+
+      testWidgets('予約予定を予約中の1行目に出し、状態は押せない。戻ると予約画面', (tester) async {
+        actions.receive(delivery(1, a));
+        complete(a);
+        await pumpView(tester);
+        await tester.ensureVisible(chip('Tokyo_Koto'));
+        await tester.tap(chip('Tokyo_Koto'));
+        await tester.pump();
+
+        expect(
+          find.byKey(const ValueKey('reservation.preview')),
+          findsOneWidget,
+        );
+        expect(find.text('予約前の確認'), findsNothing, reason: '帯は冗長なので置かない');
+        expect(
+          find.byKey(const ValueKey('reservation.preview.next')),
+          findsOneWidget,
+          reason: '確認の後にどこへ進むかを言う',
+        );
+        final pending = find.byKey(
+          const ValueKey('reservation.preview.pending'),
+        );
+        expect(pending, findsOneWidget);
+        // **予約中の先頭である。** 記録済みの予約中の行はどれも予約予定より下に出る。
+        final rows = container
+            .read(reservationPreviewLoansProvider('Tokyo_Koto'))
+            .where((item) => item.status == 'reserved');
+        for (final item in rows) {
+          final row = find.byKey(
+            ValueKey('reservation.preview.row.${item.loanId}'),
+          );
+          if (row.evaluate().isEmpty) continue;
+          expect(
+            tester.getTopLeft(row).dy,
+            greaterThan(tester.getTopLeft(pending).dy),
+          );
+        }
+        // **読むだけである。** 状態と期限は押せない。
+        final reserve = tester.widget<OutlinedButton>(
+          find.descendant(
+            of: find.byKey(
+              const ValueKey('reservation.preview.pending.reserve.pending'),
+            ),
+            matching: find.byType(OutlinedButton),
+          ),
+        );
+        expect(reserve.onPressed, isNull);
+        expect(container.read(currentTabProvider), ShellTab.reserve);
+
+        await tester.tap(
+          find.byKey(const ValueKey('reservation.preview.back')),
+        );
+        await tester.pump();
+        expect(find.byKey(const ValueKey('reservation.preview')), findsNothing);
+        expect(tester.widget<FilterChip>(chip('Tokyo_Koto')).selected, isTrue);
+        await settle(tester);
+      });
+
+      testWidgets('館サイトを開け、送り返すと確認画面へ戻る', (tester) async {
+        actions.receive(delivery(1, a));
+        complete(a);
+        await pumpView(tester);
+        await tester.ensureVisible(chip('Tokyo_Koto'));
+        await tester.tap(chip('Tokyo_Koto'));
+        await tester.pump();
+
+        await tester.tap(
+          find.byKey(const ValueKey('reservation.preview.site')),
+        );
+        await tester.pump();
+        expect(opened, hasLength(1));
+
+        // 館サイトの URL を送り返すと、開き方が貸出しと同じなので判定も貸出しになる。
+        // **確認画面を開いている区なら、貸出しへは移さない。**
+        container.read(currentTabProvider.notifier).select(ShellTab.lending);
+        container
+            .read(pendingHandoffTriageProvider.notifier)
+            .onTriage(LendingTriageCandidate('Tokyo_Koto', DateTime.now()));
+        expect(container.read(currentTabProvider), ShellTab.reserve);
+        expect(
+          container.read(lendingRouteProvider).screen,
+          LendingScreen.overview,
+        );
+        expect(container.read(reservationProvider).previewSystem, 'Tokyo_Koto');
+
+        // 別の区の館サイトなら、従来どおり貸出しのその区へ。
+        container
+            .read(pendingHandoffTriageProvider.notifier)
+            .onTriage(LendingTriageCandidate('Tokyo_Sumida', DateTime.now()));
+        expect(container.read(currentTabProvider), ShellTab.lending);
+        await settle(tester);
+      });
+
+      testWidgets('同じ本の記録がある区では、確定前にそう出す', (tester) async {
+        app.saveReservation(
+          book: ReservationBook(
+            id: app.reservationBookId(a),
+            title: '既に予約した本',
+            authors: const [],
+            isbn13: a,
+            provider: 'manual',
+          ),
+          operationId: app.newReservationId(),
+          systems: const ['Tokyo_Koto'],
+          wanted: false,
+        );
+        actions.receive(delivery(1, a));
+        complete(a);
+        await pumpView(tester);
+        await tester.ensureVisible(chip('Tokyo_Koto'));
+        await tester.tap(chip('Tokyo_Koto'));
+        await tester.pump();
+
+        expect(
+          find.byKey(const ValueKey('reservation.preview.duplicate')),
+          findsOneWidget,
+        );
+        // 記録済みの行は予約日の順で並ぶので、画面の下にあることがある。
+        await tester.scrollUntilVisible(
+          find.text('同じ本'),
+          300,
+          scrollable: find.descendant(
+            of: find.byKey(const ValueKey('reservation.preview')),
+            matching: find.byType(Scrollable),
+          ),
+        );
+        expect(find.text('同じ本'), findsOneWidget);
+        await settle(tester);
+      });
+
+      testWidgets('常用館が決まっていない区では止め、戻ってもチェックしない', (tester) async {
+        actions.receive(delivery(1, a));
+        complete(a);
+        await pumpView(tester);
+        await tester.ensureVisible(chip('Tokyo_Sumida'));
+        await tester.tap(chip('Tokyo_Sumida'));
+        await tester.pump();
+
+        expect(
+          find.byKey(const ValueKey('reservation.preview.gate')),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(const ValueKey('reservation.preview.pending')),
+          findsNothing,
+        );
+        await tester.tap(
+          find.byKey(const ValueKey('reservation.preview.back')),
+        );
+        await tester.pump();
+        expect(
+          tester.widget<FilterChip>(chip('Tokyo_Sumida')).selected,
+          isFalse,
+        );
+        await settle(tester);
+      });
+    });
+  });
+
+  testWidgets('区の確認画面は狭い明暗の画面に収まる。指定時は描画を保存する', (tester) async {
+    final output = Platform.environment['KARITA_TEST_RENDER'];
+    if (output != null) await loadRenderFonts(tester);
+    app.saveReservation(
+      book: ReservationBook(
+        id: app.reservationBookId(a),
+        title: '既に予約した本',
+        authors: const [],
+        isbn13: a,
+        provider: 'manual',
+      ),
+      operationId: app.newReservationId(),
+      systems: const ['Tokyo_Koto'],
+      wanted: false,
+    );
+    actions.receive(delivery(1, a));
+    requests[a]!.complete(
+      const OpenBdResult.found(
+        BookRecord(isbn13: a, title: 'ソフトウェア設計の考え方と実践', authorLine: '山田 太郎'),
+      ),
+    );
+    await tester.pump();
+    actions.choose('Tokyo_Koto');
+    final key = GlobalKey();
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    tester.view.devicePixelRatio = 1;
+    for (final brightness in Brightness.values) {
+      for (final width in const [320.0, 390.0]) {
+        tester.view.physicalSize = Size(width, 940);
+        final base = karitaTheme(brightness);
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(
+              theme: output == null
+                  ? base
+                  : base.copyWith(
+                      textTheme: base.textTheme.apply(
+                        fontFamily: 'ReservationRender',
+                      ),
+                    ),
+              home: RepaintBoundary(
+                key: key,
+                child: const Scaffold(body: ReservationView()),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(
+          find.byKey(const ValueKey('reservation.preview.pending')),
+          findsOneWidget,
+        );
+        if (output != null) {
+          final boundary = tester.renderObject<RenderRepaintBoundary>(
+            find.byKey(key),
+          );
+          await tester.runAsync(() async {
+            final image = await boundary.toImage();
+            final bytes = await image.toByteData(
+              format: ui.ImageByteFormat.png,
+            );
+            Directory(output).createSync(recursive: true);
+            await File(
+              '$output/reservation-preview-${brightness.name}-${width.toInt()}.png',
+            ).writeAsBytes(bytes!.buffer.asUint8List());
+            image.dispose();
+          });
+        }
+      }
+    }
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 1));
   });
 
   testWidgets(
@@ -569,3 +842,19 @@ class _RecordingLauncher implements BrowserLauncher {
   @override
   Future<void> open(String choice, Uri url) async => opened.add((choice, url));
 }
+
+/// 描画の保存用の書体。**`KARITA_TEST_RENDER` を指定したときだけ読む。**
+Future<void> loadRenderFonts(WidgetTester tester) => tester.runAsync(() async {
+  ByteData bytes(String path) =>
+      ByteData.sublistView(File(path).readAsBytesSync());
+  for (final (family, path) in const [
+    ('ReservationRender', 'C:/Windows/Fonts/meiryo.ttc'),
+    ('sans-serif', 'C:/Windows/Fonts/meiryo.ttc'),
+    (
+      'MaterialIcons',
+      'C:/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
+    ),
+  ]) {
+    await (FontLoader(family)..addFont(Future.value(bytes(path)))).load();
+  }
+});

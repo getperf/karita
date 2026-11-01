@@ -22,16 +22,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:karita_domain/karita_domain.dart';
 
-import '../book_cover.dart';
 import '../bookshelf/state.dart';
 import '../density.dart';
 import '../libraries/state.dart';
 import '../libraries/wording.dart';
 import '../shell/navigation.dart';
 import 'action_bar.dart';
+import 'row.dart';
 import 'shared.dart';
 import 'state.dart';
-import 'wording.dart';
 
 class LendingAreaDetail extends ConsumerWidget {
   const LendingAreaDetail(this.systemId, {super.key});
@@ -273,29 +272,15 @@ class _Row extends ConsumerWidget {
 
   final String loanId;
 
-  /// 書影の幅。**48×68**（2026-09-20）。右の中身は 24＋8＋44 でおよそ 76px なので、
-  /// 書影が行の高さを決めることはない。
-  static const double _coverWidth = 48;
-
-  /// 4つのボタン。**並びは `lending.md` の状態の並びどおりである。**
-  static const List<(String, String, String)> _buttons = [
-    ('予約中', 'reserve', 'reserved'),
-    ('取置中', 'ready-for-pickup', 'ready_for_pickup'),
-    ('貸出中', 'borrow', 'borrowed'),
-    ('返却済', 'return', 'returned'),
-  ];
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(lendingProvider);
     final actions = ref.read(lendingProvider.notifier);
     final item = state.rows[loanId];
     if (item == null) return const SizedBox.shrink();
-    final theme = Theme.of(context);
     final status = state.statusOf(loanId);
     final busy = state.busyLoanId == loanId;
     final leaving = state.leaving.containsKey(loanId);
-    final danger = !leaving && isOverdue(item);
     final branches = ref.watch(lendingBranchesProvider(item.systemId));
     // **選択中は状態と期限を押せなくする**（モックの
     // `.selection-mode .book-controls { pointer-events: none }`）。いま選んでいるのは
@@ -304,167 +289,37 @@ class _Row extends ConsumerWidget {
     final selecting = selection.active;
     final density = ref.watch(densityProvider);
 
-    return Container(
-      // **行に余白と区切りを入れる**（2026-09-19）。モックの `.book-row` は
-      // `padding: 5px` と `border-bottom` を持つ。詰めて並べると、どこまでが1冊かが
-      // 読み取れない。
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
-        ),
-      ),
-      child: Row(
-        // **書影は行の頭に付ける。** 中身の高さは注記の有無で変わるので、中央寄せにすると
-        // 同じ枠の中で書影の位置が行ごとに上下する。
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // **書影と書名から本の記録へ渡す**（2026-09-21）。貸出しの行が指している1冊を、
-          // 本棚の側で見る導線である。**選んでいる最中は渡さない** — いま選んでいるのは
-          // 「どの行を取消すか」で、その途中で画面が変わると選択が消える。
-          _RecordLink(
-            bookId: item.bookId,
-            enabled: !selecting,
-            child: BookCoverView(
-              width: _coverWidth,
-              colorSeed: item.bookId,
-              title: item.title,
-              isbn13: item.isbn13,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // **書名と受取館は2行に分ける**（2026-10-05）。受取館名が長いと、同じ行では
-                // 書名が1〜2文字まで潰れた（狭い Android の窓）。書名が全幅を使い、受取館は
-                // 直下で省略する。受取館はリンクで、押すとその Loan だけの受取館を選び直す。
-                // **常用館は動かない。**
-                _RecordLink(
-                  bookId: item.bookId,
-                  enabled: !selecting,
-                  child: Text(
-                    item.title,
-                    // **本文の大きさで出す**（2026-09-19）。`titleSmall` では
-                    // 小さすぎた。モックの `.book-title` は地の文と同じ大きさの
-                    // 太字である。
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: danger ? theme.colorScheme.error : null,
-                      // **色だけでリンクを示さない**（`lendingLinkStyle` と同じ
-                      // 理由）。書名は色を期限超過にも使うので、下線が唯一の
-                      // 配色に依存しない手がかりである。
-                      decoration: selecting ? null : TextDecoration.underline,
-                      decorationColor: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    key: ValueKey('lending.branch.$loanId'),
-                    style: lendingLinkStyle(context),
-                    onPressed: busy || branches.isEmpty
-                        ? null
-                        : () => _pickBranch(context, ref, item, branches),
-                    child: Text(
-                      pickupLibraryLabel(item),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-                if (!item.bookAvailable) const Text('この記録の書誌が台帳にありません。'),
-                if (!item.effective)
-                  Text(duplicateNote(), style: theme.textTheme.bodySmall),
-                if (parallelNote(item) case final note?)
-                  Text(note, style: theme.textTheme.bodySmall),
-                const SizedBox(height: 8),
-                // **4つの状態を均等に、期限だけ固定幅で並べる**（モックの `.book-controls` は
-                // `repeat(4, minmax(0, 1fr)) 76px`）。
-                //
-                // **期限を5等分に混ぜない**（2026-09-19 の直し）。出るのは `09/20` の5文字だけ
-                // なので、状態ボタンと同じ幅を与えると横に空白が広がる。
-                Row(
-                  // **間隔は [Row] に入れさせる。** 各セルの中へ padding を置くと最後の1つだけが
-                  // 広くなり、4つの均等が崩れる。
-                  spacing: 4,
-                  children: [
-                    for (final (label, action, target) in _buttons)
-                      Expanded(
-                        child: _StatusButton(
-                          key: ValueKey('lending.$action.$loanId'),
-                          label: label,
-                          selected: status == target,
-                          height: density.control,
-                          onPressed: busy || selecting
-                              ? null
-                              : () => actions.apply(
-                                  loanId: loanId,
-                                  action: action,
-                                ),
-                        ),
-                      ),
-                    SizedBox(
-                      width: density.pointer == PointerKind.touch ? 76 : 66,
-                      child: _DateButton(
-                        key: ValueKey('lending.date.$loanId'),
-                        deadline: leaving ? null : _dateOf(item),
-                        muted: item.status == 'reserved',
-                        height: density.control,
-                        onPressed:
-                            busy ||
-                                selecting ||
-                                leaving ||
-                                _dateActionFor(status) == null
-                            ? null
-                            : () => _pickDate(context, ref, item, status),
-                      ),
-                    ),
-                  ],
-                ),
-                // **返却済みにした行にだけ、下の行へレビューの入口を出す。** 状態ボタンと同じ
-                // 列割りで、「返却済」の真下に置く。自動では移らない — 棚卸は何冊も続けて直す
-                // 作業で、返すたびに画面が変わると中断する。押したときだけ本棚の記録へ渡し、
-                // 閉じたらこの区へ帰る。選んでいる最中は出さない。
-                if (status == 'returned' && !selecting) ...[
-                  const SizedBox(height: 4),
-                  Row(
-                    spacing: 4,
-                    children: [
-                      for (var i = 0; i < _buttons.length - 1; i++)
-                        const Expanded(child: SizedBox.shrink()),
-                      Expanded(
-                        child: _StatusButton(
-                          key: ValueKey('lending.review.$loanId'),
-                          label: 'レビュー',
-                          selected: false,
-                          height: density.control,
-                          onPressed: busy
-                              ? null
-                              : () => openShelfRecord(
-                                  ref,
-                                  item.bookId,
-                                  returnTo: ShellTab.lending,
-                                ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: density.pointer == PointerKind.touch ? 76 : 66,
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-          // **終端にした行にはチェックボックスを出さない**（モックも同じ）。もう終わって
-          // いる行を取消しても書くものが無く、選べると件数だけが増える。
-          if (selecting && !leaving)
-            SizedBox(
+    return LoanRowView(
+      item: item,
+      status: status,
+      danger: !leaving && isOverdue(item),
+      leaving: leaving,
+      // **書影と書名から本の記録へ渡す**（2026-09-21）。貸出しの行が指している1冊を、
+      // 本棚の側で見る導線である。**選んでいる最中は渡さない** — いま選んでいるのは
+      // 「どの行を取消すか」で、その途中で画面が変わると選択が消える。
+      // **閉じたらこの区へ帰す**（［レビュー］と同じ）。戻る・外す・保存のどれでも。
+      onOpenRecord: selecting
+          ? null
+          : () => openShelfRecord(ref, item.bookId, returnTo: ShellTab.lending),
+      onPickBranch: busy || branches.isEmpty
+          ? null
+          : () => _pickBranch(context, ref, item, branches),
+      onStatus: busy || selecting
+          ? null
+          : (action) => actions.apply(loanId: loanId, action: action),
+      onPickDate: busy || selecting || leaving || _dateActionFor(status) == null
+          ? null
+          : () => _pickDate(context, ref, item, status),
+      // 自動では移らない — 棚卸は何冊も続けて直す作業で、返すたびに画面が変わると中断する。
+      // 押したときだけ本棚の記録へ渡し、閉じたらこの区へ帰る。選んでいる最中は出さない。
+      showReview: status == 'returned' && !selecting,
+      onReview: busy
+          ? null
+          : () => openShelfRecord(ref, item.bookId, returnTo: ShellTab.lending),
+      // **終端にした行にはチェックボックスを出さない**（モックも同じ）。もう終わって
+      // いる行を取消しても書くものが無く、選べると件数だけが増える。
+      trailing: selecting && !leaving
+          ? SizedBox(
               width: density.control,
               height: density.control,
               child: Checkbox(
@@ -476,9 +331,8 @@ class _Row extends ConsumerWidget {
                 onChanged: (_) =>
                     ref.read(lendingSelectionProvider.notifier).toggle(loanId),
               ),
-            ),
-        ],
-      ),
+            )
+          : null,
     );
   }
 
@@ -489,13 +343,6 @@ class _Row extends ConsumerWidget {
     'borrowed' => 'correct-due-date',
     _ => null,
   };
-
-  /// 日付のセルに出す値。**予約中は期限の代わりに予約日を出す。**
-  ///
-  /// 予約日は館サイトの並び（予約日順）と照らして直すためにある。期限と取り違えないよう、
-  /// セルは淡い色で出す（[_DateButton.muted]）。
-  static String? _dateOf(LoanReportItem item) =>
-      item.status == 'reserved' ? item.reservedOn : deadlineOf(item);
 
   /// 期限を選ぶ。**日を押した時点で確定する。OK は置かない**（2026-09-19）。
   ///
@@ -514,7 +361,7 @@ class _Row extends ConsumerWidget {
     final action = _dateActionFor(status);
     if (action == null) return;
     final now = DateTime.now();
-    final current = DateTime.tryParse(_dateOf(item) ?? '') ?? now;
+    final current = DateTime.tryParse(loanRowDate(item) ?? '') ?? now;
     final picked = await showDialog<DateTime>(
       context: context,
       builder: (context) => Dialog(
@@ -588,125 +435,5 @@ class _Row extends ConsumerWidget {
           systemId: item.systemId,
           branchId: picked,
         );
-  }
-}
-
-/// 状態の1つ。**選択中は枠と淡い地色で示す**（モックの `.status-button.active`）。
-///
-/// **地色は淡くする**（2026-09-19 の直し）。`primaryContainer` は配色によっては濃く出て、
-/// 4つ並んだ中の1つが**行の主役より目立つ。** 行の主役は書名である。モックの
-/// `--brand-soft`（`#dff0ed`）は地に近い薄さなので、こちらも主色の薄い被せにする。
-///
-/// **枠は1px。** 2px は選択を強めるが、隣の3つとの太さの差が行の輪郭より強くなる。
-/// 本の記録へ渡す包み。**書影と書名の両方に同じものを掛ける。**
-///
-/// 押しても貸出しの記録は変えない。**本棚の側で読むだけ**である
-/// （`bookshelf/state.dart` の `openShelfRecord`）。
-class _RecordLink extends ConsumerWidget {
-  const _RecordLink({
-    required this.bookId,
-    required this.enabled,
-    required this.child,
-  });
-
-  final String bookId;
-  final bool enabled;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (!enabled) return child;
-    return InkWell(
-      key: ValueKey('lending.record.$bookId'),
-      // **閉じたらこの区へ帰す**（［レビュー］と同じ）。戻る・外す・保存のどれでも。
-      onTap: () => openShelfRecord(ref, bookId, returnTo: ShellTab.lending),
-      // **書影の角に合わせる。** 押した跡が四角く出ると、書影から浮く。
-      borderRadius: BorderRadius.circular(6),
-      child: child,
-    );
-  }
-}
-
-class _StatusButton extends StatelessWidget {
-  const _StatusButton({
-    super.key,
-    required this.label,
-    required this.selected,
-    required this.height,
-    required this.onPressed,
-  });
-
-  final String label;
-  final bool selected;
-
-  /// 操作要素の高さ。**ポインタで決まる**（`density.dart`。モックも触44／精30）。
-  final double height;
-
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        minimumSize: Size(0, height),
-        // **地の文と同じ大きさにする**（2026-09-19 の直し）。13px では小さすぎた。
-        // **配色の書体から作る** — 素の [TextStyle] は `fontFamily` ごと置き換える。
-        textStyle: (theme.textTheme.labelLarge ?? const TextStyle()).copyWith(
-          fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-        ),
-        // 主色の薄い被せ。**明暗のどちらでも地に近い濃さになる。**
-        backgroundColor: selected
-            ? scheme.primary.withValues(alpha: 0.10)
-            : null,
-        foregroundColor: selected ? scheme.primary : scheme.onSurfaceVariant,
-        side: BorderSide(
-          color: selected ? scheme.primary : scheme.outlineVariant,
-        ),
-      ),
-      child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
-    );
-  }
-}
-
-/// 期限のセル。**`MM/DD`。持たない状態では `--/--`。**
-class _DateButton extends StatelessWidget {
-  const _DateButton({
-    super.key,
-    required this.deadline,
-    required this.height,
-    required this.onPressed,
-    this.muted = false,
-  });
-
-  /// `YYYY-MM-DD`。無ければ `null`。
-  final String? deadline;
-
-  /// 期限ではない日付（予約日）。**淡い色で出し、期限と見分ける。**
-  final bool muted;
-
-  final double height;
-
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final value = deadline != null && deadline!.length == 10
-        ? '${deadline!.substring(5, 7)}/${deadline!.substring(8, 10)}'
-        : '--/--';
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        padding: EdgeInsets.zero,
-        minimumSize: Size(0, height),
-        foregroundColor: muted ? scheme.onSurfaceVariant : scheme.onSurface,
-        side: BorderSide(color: scheme.outlineVariant),
-      ),
-      child: Text(value, maxLines: 1),
-    );
   }
 }

@@ -7,6 +7,7 @@ import 'package:karita_handoff/karita_handoff.dart';
 import 'package:karita_public_api_client/karita_public_api_client.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../composition.dart';
+import '../lending/wording.dart';
 import '../libraries/state.dart';
 import '../shell/navigation.dart';
 
@@ -109,12 +110,16 @@ class ReservationState {
   final bool formVisible;
   final bool saving;
   final String message;
+
+  /// 開いている区の確認画面（`reservation-preview.md`）。**下書きがある間だけ持つ。**
+  final String? previewSystem;
   const ReservationState({
     this.draft,
     this.waiting = const [],
     this.formVisible = false,
     this.saving = false,
     this.message = '',
+    this.previewSystem,
   });
 }
 
@@ -187,6 +192,8 @@ class Reservation extends _$Reservation {
     bool? visible,
     bool? saving,
     String? message,
+    String? preview,
+    bool closePreview = false,
     bool clear = false,
   }) {
     state = ReservationState(
@@ -195,6 +202,10 @@ class Reservation extends _$Reservation {
       formVisible: visible ?? state.formVisible,
       saving: saving ?? state.saving,
       message: message ?? state.message,
+      // **下書きが替われば閉じる。** 確認画面は今の本を区へ足す前の画面である。
+      previewSystem: clear || closePreview
+          ? null
+          : preview ?? state.previewSystem,
     );
   }
 
@@ -473,6 +484,54 @@ class Reservation extends _$Reservation {
     final systems = {...draft.systems};
     if (!systems.add(id)) systems.remove(id);
     _set(draft: draft.copy(systems: Set.unmodifiable(systems)));
+  }
+
+  /// 受取システム館を押した（2026-10-31。`reservation-preview.md` §2）。
+  ///
+  /// **選ぶときは区の確認画面を開く。** 予約を記録する前に、その区の貸出し状況を必ず見せる。
+  /// 外すときは画面を移らない — 外すたびに確認画面を見る理由が無い。
+  ///
+  /// **チェックは開いた時点で付ける。** 戻り方によらず、戻った予約画面では選択済みになる。
+  /// 常用館が決まっていない区には付けない — 選んでも保存で `preferred-branch` に弾かれるだけで、
+  /// 確認画面がその理由と設定への入口を出す。
+  void choose(String id) {
+    final draft = state.draft;
+    if (draft == null || state.saving) return;
+    if (draft.systems.contains(id)) {
+      select(id);
+      return;
+    }
+    final PreferredBranchState preferred;
+    try {
+      preferred = ref.read(preferredBranchProvider(id)).state;
+    } catch (_) {
+      // 読めなければ未設定として扱う（予約画面の `_preferredState` と同じ）。
+      _set(preview: id);
+      return;
+    }
+    _set(
+      draft: preferred == PreferredBranchState.resolved
+          ? draft.copy(systems: Set.unmodifiable({...draft.systems, id}))
+          : null,
+      preview: id,
+    );
+  }
+
+  /// 確認画面を閉じて予約画面へ戻る。**選んだ館はそのまま。**
+  void closePreview() => _set(closePreview: true);
+
+  /// 確認画面の［図書館サイトを開く］（2026-10-31）。**貸出しと同じ開き方で開く**
+  /// （`LaunchPurpose.lending`）。館サイトから送り返すと、確認画面を開いている間は
+  /// 確認画面へ戻る（`handoff_triage.dart`）。アプリへ切り替えて戻るだけなら、確認画面は
+  /// この状態が持ち続けている。
+  Future<void> openSite(String systemId) async {
+    try {
+      await ref.read(compositionProvider).openLendingSite(systemId);
+    } on Object catch (error) {
+      if (ref.mounted) {
+        _set(message: lendingIssueMessage(lendingIssueCode(error)));
+      }
+    }
   }
 
   void removeWaiting(int id) =>
