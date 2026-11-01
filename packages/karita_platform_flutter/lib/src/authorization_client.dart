@@ -26,6 +26,13 @@ abstract interface class AndroidAuthorizationClient {
 
   /// 端末に残っている access token を捨てる。**Google の grant は取り消さない。**
   Future<void> clearToken(String accessToken);
+
+  /// SDK が端末に持つサインインを消す。**Google の grant は取り消さない。**
+  ///
+  /// **効くのは iOS だけである。** iOS は SDK が Keychain に持つサインインを消し、次の無音の
+  /// 取得が `null` になる。Android は Play services が grant から無音で取り直すので、消しても
+  /// 接続は切れない（だから Android には［サインアウト］を置かない）。
+  Future<void> signOut();
 }
 
 /// `google_sign_in` の Authorization API を [AndroidAuthorizationClient] として見せる。
@@ -74,4 +81,7 @@ class PlayServicesAuthorizationClient implements AndroidAuthorizationClient {
       _signIn.authorizationClient.clearAuthorizationToken(
         accessToken: accessToken,
       );
+
+  @override
+  Future<void> signOut() => _signIn.signOut();
 }

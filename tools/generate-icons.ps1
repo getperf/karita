@@ -127,5 +127,17 @@ Write-Text (Join-Path $res 'values/icon_colors.xml') "<resources>`n  <color name
 $adaptive = "<adaptive-icon xmlns:android=`"http://schemas.android.com/apk/res/android`">`n  <background android:drawable=`"@color/ic_launcher_background`"/>`n  <foreground android:drawable=`"@drawable/ic_launcher_foreground`"/>"
 Write-Text (Join-Path $res 'mipmap-anydpi-v26/ic_launcher.xml') "$adaptive`n</adaptive-icon>"
 Write-Text (Join-Path $res 'mipmap-anydpi-v33/ic_launcher.xml') "$adaptive`n  <monochrome android:drawable=`"@drawable/ic_launcher_monochrome`"/>`n</adaptive-icon>"
+# iOS は 1024 の1枚だけを置く（Xcode の単一サイズ）。**アルファを持たせない** — App Store が
+# 透過も alpha チャンネルも拒む。角丸は iOS がかけるので四隅まで塗り、縁のにじみは背景色に重ねる。
+$iconSet = Join-Path $appDir 'ios/Runner/Assets.xcassets/AppIcon.appiconset'
+if (Test-Path -LiteralPath $iconSet) {
+    $rgba = Render-Icon 1024 $false
+    $opaque = [System.Drawing.Bitmap]::new(1024, 1024, [System.Drawing.Imaging.PixelFormat]::Format24bppRgb)
+    $g = [System.Drawing.Graphics]::FromImage($opaque)
+    $g.Clear([System.Drawing.ColorTranslator]::FromHtml($accent))
+    $g.DrawImage($rgba, 0, 0, 1024, 1024)
+    $g.Dispose(); $rgba.Dispose()
+    $opaque.Save((Join-Path $iconSet 'Icon-App-1024x1024@1x.png'), [System.Drawing.Imaging.ImageFormat]::Png); $opaque.Dispose()
+}
 $what = if ($derived) { "derived ($accent)" } else { 'brand master' }
 Write-Output "Generated Karita v1 launcher resources for $App — $what."

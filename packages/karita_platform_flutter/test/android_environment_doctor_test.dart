@@ -33,6 +33,9 @@ class _FakeClient implements AndroidAuthorizationClient {
 
   @override
   Future<void> clearToken(String accessToken) async {}
+
+  @override
+  Future<void> signOut() async {}
 }
 
 void main() {

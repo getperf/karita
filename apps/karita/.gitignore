@@ -49,3 +49,5 @@ app.*.map.json
 
 # iOS の OAuth クライアント ID。公開リポジトリへ入れない。
 /ios/Flutter/GoogleSignIn.xcconfig
+# 署名のチーム ID。公開リポジトリへ入れない。
+/ios/Flutter/Signing.xcconfig
