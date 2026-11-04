@@ -534,6 +534,20 @@ class Reservation extends _$Reservation {
     }
   }
 
+  /// 確認画面の［この本を〇〇の図書館で開く］（2026-11-04。`book_link.dart`）。
+  ///
+  /// **開き方は［図書館サイトを開く］と同じである**（`LaunchPurpose.lending`）。館サイトで
+  /// 予約して戻ると確認画面が残っていて、← で予約へ戻り［予約した］で登録する。
+  Future<void> openBookPage(String systemId, Uri url) async {
+    try {
+      await ref.read(compositionProvider).openLibraryBookPage(systemId, url);
+    } on Object catch (error) {
+      if (ref.mounted) {
+        _set(message: lendingIssueMessage(lendingIssueCode(error)));
+      }
+    }
+  }
+
   void removeWaiting(int id) =>
       _set(waiting: state.waiting.where((d) => d.id != id).toList());
 

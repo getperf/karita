@@ -67,6 +67,7 @@ String lendingIssueMessage(String code) => switch (code) {
   'mypage-url-unset' => 'この地区の図書館サイトのURLがありません。図書館管理で設定してください。',
   'mypage-url-broken' => '保存されているURLが使えません。図書館管理で設定し直してください。',
   'browser-open' => 'ブラウザーを開けませんでした。',
+  'book-page-url-broken' => '図書館の本のページを開けませんでした。［カーリルで見る］から探してください。',
   _ => '操作できませんでした（$code）。',
 };
 

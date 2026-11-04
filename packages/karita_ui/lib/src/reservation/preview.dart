@@ -19,14 +19,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:karita_app/karita_app.dart';
 import 'package:karita_domain/karita_domain.dart';
+import 'package:karita_public_api_client/karita_public_api_client.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../bookshelf/holdings.dart';
 import '../composition.dart';
 import '../lending/row.dart';
 import '../lending/state.dart';
 import '../libraries/state.dart';
 import '../libraries/wording.dart';
 import '../shell/navigation.dart';
+import 'book_link.dart';
 import 'state.dart';
 import 'view.dart';
 
@@ -167,19 +170,32 @@ class ReservationPreview extends ConsumerWidget {
               ],
             ),
           ),
+          // **その本の館サイトのページを先に置く**（2026-11-04。`book_link.dart`）。予約は
+          // ここから館サイトで行い、戻って［予約した］で記録する。ISBN が無い本は行き先を
+          // 引けないので出さない。
+          if (draft.isbn case final String isbn)
+            inset(_BookLink(systemId: systemId, isbn: isbn, name: name)),
           // **館サイトを開ける**（2026-10-31）。予約の前に館サイトで区の状況を確かめたい
-          // ときのため。貸出しの詳細と同じ置き方・同じ文言にする。
+          // ときのため。貸出しの詳細と同じ文言にする。本のページを出すときは、主役を譲って
+          // 枠線のボタンにする。
           inset(
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: SizedBox(
                 width: double.infinity,
-                child: FilledButton.icon(
-                  key: const ValueKey('reservation.preview.site'),
-                  onPressed: () => actions.openSite(systemId),
-                  icon: const Icon(Icons.open_in_new),
-                  label: Text('$nameの図書館サイトを開く'),
-                ),
+                child: draft.isbn == null
+                    ? FilledButton.icon(
+                        key: const ValueKey('reservation.preview.site'),
+                        onPressed: () => actions.openSite(systemId),
+                        icon: const Icon(Icons.open_in_new),
+                        label: Text('$nameの図書館サイトを開く'),
+                      )
+                    : OutlinedButton.icon(
+                        key: const ValueKey('reservation.preview.site'),
+                        onPressed: () => actions.openSite(systemId),
+                        icon: const Icon(Icons.open_in_new),
+                        label: Text('$nameの図書館サイトを開く'),
+                      ),
               ),
             ),
           ),
@@ -227,7 +243,7 @@ class ReservationPreview extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  '確認したら、左上の ← で予約へ戻り、［予約した］で登録してください。',
+                  '図書館サイトで予約したら、左上の ← で予約へ戻り、［予約した］で登録してください。',
                   key: const ValueKey('reservation.preview.next'),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.primary,
@@ -275,6 +291,80 @@ class ReservationPreview extends ConsumerWidget {
             ),
             for (final item in reservedRows) inset(row(item)),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// その本の館サイトのページへのボタンと、その区での蔵書の1行（2026-11-04）。
+///
+/// 行き先が分かれば館のページ、分からなければカーリルの書籍ページを開く。**照会中も
+/// ボタンの位置を空けない** — 押せない同じボタンを置き、届いたら押せるようにする。
+class _BookLink extends ConsumerWidget {
+  const _BookLink({
+    required this.systemId,
+    required this.isbn,
+    required this.name,
+  });
+  final String systemId;
+  final String isbn;
+  final String name;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final actions = ref.read(reservationProvider.notifier);
+    final link = ref.watch(reservationBookLinkProvider((isbn, systemId)));
+    final value = link.isLoading ? null : link.value;
+    final url = value?.url;
+    final summary = value?.summary;
+    final note = switch (summary?.state) {
+      null when link.isLoading => '$nameの蔵書を確認しています…',
+      HoldingsState.keyMissing => '',
+      HoldingsState.absent => '$nameにこの本の蔵書は見つかりませんでした（カーリル）。',
+      final HoldingsState _ when summary!.found =>
+        url == null
+            ? '$name：${shelfHoldingsBadge(summary)}。本のページは分からないため、カーリルから開きます。'
+            : '$name：${shelfHoldingsBadge(summary)}',
+      _ => '$nameの蔵書を確認できませんでした。カーリルから探せます。',
+    };
+    final Widget button;
+    if (url != null || link.isLoading) {
+      button = FilledButton.icon(
+        key: const ValueKey('reservation.preview.book'),
+        onPressed: url == null
+            ? null
+            : () => actions.openBookPage(systemId, url),
+        icon: const Icon(Icons.menu_book),
+        label: Text('この本を$nameの図書館で開く'),
+      );
+    } else {
+      button = FilledButton.tonalIcon(
+        key: const ValueKey('reservation.preview.calil'),
+        onPressed: actions.openCalil,
+        icon: const Icon(Icons.search),
+        label: const Text('カーリルでこの本を見る'),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: double.infinity, child: button),
+          if (note.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Semantics(
+                liveRegion: true,
+                child: Text(
+                  note,
+                  key: const ValueKey('reservation.preview.book.note'),
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
+            ),
         ],
       ),
     );

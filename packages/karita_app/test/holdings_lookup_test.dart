@@ -47,21 +47,28 @@ void main() {
   var libkey = <String, String>{};
   var keepRunning = false;
 
+  /// 相手が返す館の書誌ページ。**空なら返さない**（所蔵が無い館は空で返る）。
+  var reserveUrl = '';
 
   http.Client makeHttpClient() => MockClient((request) async {
     final isbn = request.url.queryParameters['isbn'];
     if (isbn == null) {
       polls.add(request.url);
       return http.Response(
-        jsonEncode({'session': 's', 'continue': 0, 'books': <String, Object?>{}}),
+        jsonEncode({
+          'session': 's',
+          'continue': 0,
+          'books': <String, Object?>{},
+        }),
         200,
         headers: {'content-type': 'application/json'},
       );
     }
     starts.add(request.url);
     if (statusCode != 200) return http.Response('', statusCode);
-    final requestedSystems =
-        request.url.queryParameters['systemid']!.split(',');
+    final requestedSystems = request.url.queryParameters['systemid']!.split(
+      ',',
+    );
     final books = <String, Object?>{
       for (final one in isbn.split(','))
         one: {
@@ -69,6 +76,8 @@ void main() {
             system: {
               'status': keepRunning ? 'Running' : 'OK',
               if (libkey.isNotEmpty && !keepRunning) 'libkey': libkey,
+              if (reserveUrl.isNotEmpty && !keepRunning)
+                'reserveurl': reserveUrl,
             },
         },
     };
@@ -106,6 +115,7 @@ void main() {
     statusCode = 200;
     libkey = {'豊洲': '貸出可'};
     keepRunning = false;
+    reserveUrl = '';
   });
 
   group('塊への分け方', () {
@@ -178,7 +188,10 @@ void main() {
     test('対象が無ければ塊も無い', () {
       final lookup = makeLookup();
       expect(lookup.planChunks(isbn13s: const [], systemIds: ['A']), isEmpty);
-      expect(lookup.planChunks(isbn13s: isbns(1), systemIds: const []), isEmpty);
+      expect(
+        lookup.planChunks(isbn13s: isbns(1), systemIds: const []),
+        isEmpty,
+      );
       lookup.close();
     });
   });
@@ -320,14 +333,20 @@ void main() {
       final before = starts.length;
 
       statusCode = 200;
-      final again = await lookup.check(isbn13s: isbns(1), systemIds: systems(1));
+      final again = await lookup.check(
+        isbn13s: isbns(1),
+        systemIds: systems(1),
+      );
       expect(again.outcome, HoldingsRunOutcome.rateLimited);
       expect(starts, hasLength(before), reason: '外へ出ていない');
 
       // 10分経てば、また押せる。
       clock.at = clock.at.add(holdingsRateLimitedTtl);
       expect(lookup.rateLimited, isFalse);
-      final third = await lookup.check(isbn13s: isbns(1), systemIds: systems(1));
+      final third = await lookup.check(
+        isbn13s: isbns(1),
+        systemIds: systems(1),
+      );
       expect(third.outcome, HoldingsRunOutcome.completed);
       expect(starts.length, greaterThan(before));
       lookup.close();
@@ -346,6 +365,30 @@ void main() {
         lookup.summaryFor(isbn13: isbns(1).first, systemIds: ['A', 'B']).state,
         HoldingsState.notRequested,
         reason: '館を足したら未照会へ戻る',
+      );
+      lookup.close();
+    });
+
+    test('1館ぶんの答えから書誌ページを引ける。**鍵は照会した館の集合である**', () async {
+      reserveUrl = 'https://opac.example.jp/detail?id=1';
+      final lookup = makeLookup();
+      final isbn = isbns(1).first;
+      expect(
+        lookup.holdingFor(isbn13: isbn, systemIds: ['A'], systemId: 'A'),
+        isNull,
+        reason: '照会する前は何も持たない',
+      );
+      await lookup.check(isbn13s: [isbn], systemIds: ['A']);
+      expect(
+        lookup
+            .holdingFor(isbn13: isbn, systemIds: ['A'], systemId: 'A')
+            ?.reserveUrl,
+        Uri.parse('https://opac.example.jp/detail?id=1'),
+      );
+      expect(
+        lookup.holdingFor(isbn13: isbn, systemIds: ['A', 'B'], systemId: 'A'),
+        isNull,
+        reason: '別の館の集合で照会した観測とは混ぜない',
       );
       lookup.close();
     });
@@ -384,10 +427,7 @@ void main() {
         lookup.summaryFor(isbn13: isbns(1).first, systemIds: const []).state,
         HoldingsState.noLibrary,
       );
-      final result = await lookup.check(
-        isbn13s: isbns(1),
-        systemIds: const [],
-      );
+      final result = await lookup.check(isbn13s: isbns(1), systemIds: const []);
       expect(result.outcome, HoldingsRunOutcome.nothingToDo);
       expect(starts, isEmpty);
       lookup.close();
