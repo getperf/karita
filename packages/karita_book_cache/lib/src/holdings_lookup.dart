@@ -172,6 +172,19 @@ class HoldingsLookup {
     );
   }
 
+  /// 持っている観測から、1館ぶんの答えを引く。**通信しない。**
+  ///
+  /// 予約の確認画面が館の書誌ページ（`reserveUrl`）を開くために使う。[systemIds] は照会した
+  /// ときの館の集合で、**鍵は館の集合ごとに分かれる**（[_key]）。本棚が全館で照会した観測は、
+  /// 1館で引いても見つからない — 混ぜると、館を足す前の観測を確認済みに見せることになる。
+  ///
+  /// 照会していない・期限が切れた・その館が応答に現れなかったときは `null`。
+  SystemHolding? holdingFor({
+    required String isbn13,
+    required List<String> systemIds,
+    required String systemId,
+  }) => _cache.read(_key(isbn13, _sorted(systemIds)))?.bySystem[systemId];
+
   /// 塊に分ける。**画面と試験が同じ規則を見られるように、外へ出しておく。**
   ///
   /// 館が予算を超える端末では**館の側も分ける。** 分けた結果は `systemId` を鍵にして

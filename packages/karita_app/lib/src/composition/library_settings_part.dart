@@ -62,6 +62,39 @@ extension CompositionLibrarySettings on Composition {
         'The stored URL is not usable.',
       );
     }
+    await _launchLibrary(systemId, url, purpose, event: 'library.site.opened');
+  }
+
+  /// 館の書誌ページを開く（2026-11-04）。**行き先はカーリルの `reserveurl` である。**
+  ///
+  /// 予約の確認画面から、その本の館サイトのページへ直接行くための口。開き方は
+  /// [openLibrarySite] の貸出しと同じにする（`LaunchPurpose.lending`）— 館サイトから送り
+  /// 返したときに、確認画面へ戻る判定がそのまま効く。
+  ///
+  /// **http(s) 以外は開かない。** 値は外の API が返したもので、端末が作ったものではない。
+  Future<void> openLibraryBookPage(String systemId, Uri url) async {
+    _requireOpen();
+    if (!(url.isScheme('https') || url.isScheme('http')) || !url.hasAuthority) {
+      throw const AppIssue(
+        'book-page-url-broken',
+        'The library book page URL is not usable.',
+      );
+    }
+    await _launchLibrary(
+      systemId,
+      url,
+      LaunchPurpose.lending,
+      event: 'library.book_page.opened',
+    );
+  }
+
+  /// 館サイトを開き、**戻ってきた URL の宛先を覚えておく。** 起動に失敗したら候補を捨てる。
+  Future<void> _launchLibrary(
+    String systemId,
+    Uri url,
+    LaunchPurpose purpose, {
+    required String event,
+  }) async {
     handoff.remember(
       LaunchContext(
         purpose: purpose,
@@ -71,10 +104,7 @@ extension CompositionLibrarySettings on Composition {
         startedAt: DateTime.now(),
       ),
     );
-    _log.info('library.site.opened', {
-      'system': systemId,
-      'purpose': purpose.name,
-    });
+    _log.info(event, {'system': systemId, 'purpose': purpose.name});
     try {
       await openSite(url);
     } catch (error) {

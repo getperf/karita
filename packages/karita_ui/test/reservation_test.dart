@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -6,6 +7,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:karita_app/karita_app.dart';
 import 'package:karita_domain/karita_domain.dart';
 import 'package:karita_handoff/karita_handoff.dart';
@@ -574,6 +577,140 @@ void main() {
             .onTriage(LendingTriageCandidate('Tokyo_Sumida', DateTime.now()));
         expect(container.read(currentTabProvider), ShellTab.lending);
         await settle(tester);
+      });
+
+      group('この本の館ページ（2026-11-04。book_link.dart）', () {
+        late List<Uri> checks;
+
+        /// カーリルの `/check` の偽物。**[reserveUrl] が空なら所蔵なしで答える。**
+        HoldingsLookup fakeLookup({String reserveUrl = ''}) => HoldingsLookup(
+          CalilCheckClient(
+            appkey: 'test-key',
+            delay: (_) async {},
+            httpClient: MockClient((request) async {
+              checks.add(request.url);
+              final isbn = request.url.queryParameters['isbn']!;
+              final system = request.url.queryParameters['systemid']!;
+              return http.Response(
+                jsonEncode({
+                  'session': 's',
+                  'continue': 0,
+                  'books': {
+                    isbn: {
+                      system: {
+                        'status': 'OK',
+                        'libkey': reserveUrl.isEmpty
+                            ? <String, String>{}
+                            : {'中央': '貸出可'},
+                        'reserveurl': reserveUrl,
+                      },
+                    },
+                  },
+                }),
+                200,
+                headers: {'content-type': 'application/json'},
+              );
+            }),
+          ),
+          delay: (_) async {},
+        );
+
+        /// 照会の口を差し替えた容器へ作り直す。**読みたての下書きは作り直した後に入れる。**
+        void useLookup(HoldingsLookup lookup) {
+          container.dispose();
+          container = ProviderContainer(
+            overrides: [
+              compositionProvider.overrideWithValue(app),
+              reservationLookupProvider.overrideWith(
+                (ref, isbn) =>
+                    (requests[isbn] ??= Completer<OpenBdResult>()).future,
+              ),
+              holdingsLookupProvider.overrideWithValue(lookup),
+            ],
+          );
+          container.read(reservationProvider);
+          actions = container.read(reservationProvider.notifier);
+          addTearDown(lookup.close);
+        }
+
+        setUp(() => checks = []);
+
+        testWidgets('開いた時点で1冊×1館を聞き、館の本のページを開く', (tester) async {
+          useLookup(fakeLookup(reserveUrl: 'https://opac.example.jp/d?id=1'));
+          actions.receive(delivery(1, a));
+          complete(a);
+          await pumpView(tester);
+          await tester.ensureVisible(chip('Tokyo_Koto'));
+          await tester.tap(chip('Tokyo_Koto'));
+          await tester.pumpAndSettle();
+
+          expect(checks, hasLength(1));
+          expect(checks.single.queryParameters['isbn'], a);
+          expect(checks.single.queryParameters['systemid'], 'Tokyo_Koto');
+          expect(
+            find.byKey(const ValueKey('reservation.preview.calil')),
+            findsNothing,
+          );
+          final book = find.byKey(const ValueKey('reservation.preview.book'));
+          await tester.tap(book);
+          await tester.pump();
+          expect(opened, [Uri.parse('https://opac.example.jp/d?id=1')]);
+
+          // **閉じて開き直しても聞き直さない。** 観測は5分持っている。
+          await tester.tap(
+            find.byKey(const ValueKey('reservation.preview.back')),
+          );
+          await tester.pumpAndSettle();
+          await tester.ensureVisible(chip('Tokyo_Koto'));
+          await tester.tap(chip('Tokyo_Koto')); // 外す
+          await tester.pump();
+          await tester.tap(chip('Tokyo_Koto')); // 選び直す
+          await tester.pumpAndSettle();
+          expect(checks, hasLength(1));
+          expect(book, findsOneWidget);
+          await settle(tester);
+        });
+
+        testWidgets('所蔵が無ければ、そう言ってカーリルの書籍ページへ戻す', (tester) async {
+          useLookup(fakeLookup());
+          actions.receive(delivery(1, a));
+          complete(a);
+          await pumpView(tester);
+          await tester.ensureVisible(chip('Tokyo_Koto'));
+          await tester.tap(chip('Tokyo_Koto'));
+          await tester.pumpAndSettle();
+
+          expect(
+            find.byKey(const ValueKey('reservation.preview.book')),
+            findsNothing,
+          );
+          expect(find.textContaining('蔵書は見つかりませんでした'), findsOneWidget);
+          await tester.tap(
+            find.byKey(const ValueKey('reservation.preview.calil')),
+          );
+          await tester.pump();
+          expect(opened, [Uri.parse('https://calil.jp/book/$a')]);
+          await settle(tester);
+        });
+
+        testWidgets('appkey の無い端末では、聞かずにカーリルへ戻す', (tester) async {
+          actions.receive(delivery(1, a));
+          complete(a);
+          await pumpView(tester);
+          await tester.ensureVisible(chip('Tokyo_Koto'));
+          await tester.tap(chip('Tokyo_Koto'));
+          await tester.pumpAndSettle();
+
+          expect(
+            find.byKey(const ValueKey('reservation.preview.calil')),
+            findsOneWidget,
+          );
+          expect(
+            find.byKey(const ValueKey('reservation.preview.book.note')),
+            findsNothing,
+          );
+          await settle(tester);
+        });
       });
 
       testWidgets('同じ本の記録がある区では、確定前にそう出す', (tester) async {
