@@ -12,3 +12,8 @@
 - Partner Center：Store ID 9P4DVHV81JSP、Submission 7 / 1152921505702328981。1.0.6.0をアップロード・解析し、旧1.0.5.0を置換して保存。Packages Validated / Updated。
 - 審査説明と日本語リリースノートを1.0.6へ更新。既存の手動公開設定を確認。
 - Store経由の更新、Google認証・同期・再起動後保持、ガイドの実機受入は未実施。
+
+## 提出結果
+
+Submit for certification後、Submission 7のIn certification、Submission Complete、Pre-processing In progressを確認。Certification・PublishingはNot started。Publish nowを押すまで公開されない設定を維持。公開中はSubmission 6のまま。
+
