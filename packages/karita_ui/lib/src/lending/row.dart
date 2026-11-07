@@ -101,18 +101,10 @@ class LoanRowView extends ConsumerWidget {
             borderRadius: BorderRadius.circular(6),
             child: child,
           );
+    final controls = _controls(context, density, dateWidth);
 
-    return Container(
-      // **行に余白と区切りを入れる**（2026-09-19）。モックの `.book-row` は
-      // `padding: 5px` と `border-bottom` を持つ。詰めて並べると、どこまでが1冊かが
-      // 読み取れない。
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
-        ),
-      ),
-      child: Row(
+    Widget layout({required bool narrow}) {
+      final header = Row(
         // **書影は行の頭に付ける。** 中身の高さは注記の有無で変わるので、中央寄せにすると
         // 同じ枠の中で書影の位置が行ごとに上下する。
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,72 +185,113 @@ class LoanRowView extends ConsumerWidget {
                   Text(duplicateNote(), style: theme.textTheme.bodySmall),
                 if (parallelNote(item) case final note?)
                   Text(note, style: theme.textTheme.bodySmall),
-                const SizedBox(height: 8),
-                // **4つの状態を均等に、期限だけ固定幅で並べる**（モックの `.book-controls` は
-                // `repeat(4, minmax(0, 1fr)) 76px`）。
-                //
-                // **期限を5等分に混ぜない**（2026-09-19 の直し）。出るのは `09/20` の5文字だけ
-                // なので、状態ボタンと同じ幅を与えると横に空白が広がる。
-                Row(
-                  // **間隔は [Row] に入れさせる。** 各セルの中へ padding を置くと最後の1つだけが
-                  // 広くなり、4つの均等が崩れる。
-                  spacing: 4,
-                  children: [
-                    for (final (label, action, target) in loanStatusButtons)
-                      Expanded(
-                        child: LoanStatusButton(
-                          key: ValueKey('$keyPrefix.$action.${item.loanId}'),
-                          label: label,
-                          selected: status == target,
-                          height: density.control,
-                          inert: inert,
-                          onPressed: onStatus == null
-                              ? null
-                              : () => onStatus!(action),
-                        ),
-                      ),
-                    SizedBox(
-                      width: dateWidth,
-                      child: LoanDateButton(
-                        key: ValueKey('$keyPrefix.date.${item.loanId}'),
-                        deadline: leaving ? null : loanRowDate(item),
-                        muted: item.status == 'reserved',
-                        height: density.control,
-                        inert: inert,
-                        onPressed: onPickDate,
-                      ),
-                    ),
-                  ],
-                ),
-                // **返却済みにした行にだけ、下の行へレビューの入口を出す。** 状態ボタンと同じ
-                // 列割りで、「返却済」の真下に置く。
-                if (showReview) ...[
-                  const SizedBox(height: 4),
-                  Row(
-                    spacing: 4,
-                    children: [
-                      for (var i = 0; i < loanStatusButtons.length - 1; i++)
-                        const Expanded(child: SizedBox.shrink()),
-                      Expanded(
-                        child: LoanStatusButton(
-                          key: ValueKey('$keyPrefix.review.${item.loanId}'),
-                          label: 'レビュー',
-                          selected: false,
-                          height: density.control,
-                          onPressed: onReview,
-                        ),
-                      ),
-                      SizedBox(width: dateWidth),
-                    ],
-                  ),
-                ],
+                if (!narrow) ...[const SizedBox(height: 8), ...controls],
               ],
             ),
           ),
           ?trailing,
         ],
+      );
+      if (!narrow) return header;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [header, const SizedBox(height: 8), ...controls],
+      );
+    }
+
+    return Container(
+      // **行に余白と区切りを入れる**（2026-09-19）。モックの `.book-row` は
+      // `padding: 5px` と `border-bottom` を持つ。詰めて並べると、どこまでが1冊かが
+      // 読み取れない。
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
+        ),
+      ),
+      // **狭い幅では状態ボタンを書影の下へ出し、行の全幅を使う**（2026-11-06）。
+      // 書影の右に並べると、iPhone 12 mini（375pt）の確認画面で1つ 42pt ほどになり、
+      // 「予約中」が「予…」に潰れた。
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final beside =
+              constraints.maxWidth -
+              coverWidth -
+              10 -
+              (trailing == null ? 0 : 48);
+          return layout(narrow: beside < minControlsWidth(dateWidth));
+        },
       ),
     );
+  }
+
+  /// 状態ボタンが潰れずに並ぶ幅。**1つ 52 ＝ 3文字の地の文＋左右の余白。**
+  static double minControlsWidth(double dateWidth) =>
+      loanStatusButtons.length * 52 + loanStatusButtons.length * 4 + dateWidth;
+
+  List<Widget> _controls(
+    BuildContext context,
+    Density density,
+    double dateWidth,
+  ) {
+    return [
+      // **4つの状態を均等に、期限だけ固定幅で並べる**（モックの `.book-controls` は
+      // `repeat(4, minmax(0, 1fr)) 76px`）。
+      //
+      // **期限を5等分に混ぜない**（2026-09-19 の直し）。出るのは `09/20` の5文字だけ
+      // なので、状態ボタンと同じ幅を与えると横に空白が広がる。
+      Row(
+        // **間隔は [Row] に入れさせる。** 各セルの中へ padding を置くと最後の1つだけが
+        // 広くなり、4つの均等が崩れる。
+        spacing: 4,
+        children: [
+          for (final (label, action, target) in loanStatusButtons)
+            Expanded(
+              child: LoanStatusButton(
+                key: ValueKey('$keyPrefix.$action.${item.loanId}'),
+                label: label,
+                selected: status == target,
+                height: density.control,
+                inert: inert,
+                onPressed: onStatus == null ? null : () => onStatus!(action),
+              ),
+            ),
+          SizedBox(
+            width: dateWidth,
+            child: LoanDateButton(
+              key: ValueKey('$keyPrefix.date.${item.loanId}'),
+              deadline: leaving ? null : loanRowDate(item),
+              muted: item.status == 'reserved',
+              height: density.control,
+              inert: inert,
+              onPressed: onPickDate,
+            ),
+          ),
+        ],
+      ),
+      // **返却済みにした行にだけ、下の行へレビューの入口を出す。** 状態ボタンと同じ
+      // 列割りで、「返却済」の真下に置く。
+      if (showReview) ...[
+        const SizedBox(height: 4),
+        Row(
+          spacing: 4,
+          children: [
+            for (var i = 0; i < loanStatusButtons.length - 1; i++)
+              const Expanded(child: SizedBox.shrink()),
+            Expanded(
+              child: LoanStatusButton(
+                key: ValueKey('$keyPrefix.review.${item.loanId}'),
+                label: 'レビュー',
+                selected: false,
+                height: density.control,
+                onPressed: onReview,
+              ),
+            ),
+            SizedBox(width: dateWidth),
+          ],
+        ),
+      ],
+    ];
   }
 }
 
@@ -340,7 +373,9 @@ class LoanStatusButton extends StatelessWidget {
           color: selected ? scheme.primary : scheme.outlineVariant,
         ),
       ),
-      child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+      // **省略せずに縮める**（2026-11-06）。「予…」「取…」では4つの見分けが付かない。
+      // 全幅に出しても、文字を大きくした端末では収まらないことがある。
+      child: FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1)),
     );
   }
 }
